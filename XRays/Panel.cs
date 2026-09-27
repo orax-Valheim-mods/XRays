@@ -33,6 +33,7 @@ namespace XRays
         private GameObject root;
         private Toggle terrainToggle;
         private Toggle waterToggle;
+        private Toggle cloudsToggle;
         private Text cursorText;
         private Text objectsText;
         private float refreshTimer;
@@ -104,6 +105,7 @@ namespace XRays
             root = null;
             terrainToggle = null;
             waterToggle = null;
+            cloudsToggle = null;
             cursorText = null;
             objectsText = null;
             categoryRows.Clear();
@@ -141,6 +143,7 @@ namespace XRays
 
             terrainToggle.SetIsOnWithoutNotify(visibility.TerrainHidden);
             waterToggle.SetIsOnWithoutNotify(visibility.WaterHidden);
+            cloudsToggle.SetIsOnWithoutNotify(visibility.CloudsHidden);
 
             foreach (CategoryRow row in categoryRows)
             {
@@ -195,19 +198,20 @@ namespace XRays
             }
 
             // pre-compute the panel layout
-            float[] rows = new float[7 + Categories.BuiltIn.Length];
+            float[] rows = new float[8 + Categories.BuiltIn.Length];
             rows[0] = Row(44f); // title
-            rows[1] = Row(60f); // under the cursor (element + category, game types, coordinates)
+            rows[1] = Row(80f); // under the cursor (element, game types, hit, coordinates)
             rows[2] = Row(30f); // terrain
             rows[3] = Row(30f); // water
-            rows[4] = Row(26f); // section header
+            rows[4] = Row(30f); // clouds
+            rows[5] = Row(26f); // section header
             for (int i = 0; i < Categories.BuiltIn.Length; i++)
             {
-                rows[5 + i] = Row(26f);
+                rows[6 + i] = Row(26f);
             }
 
-            rows[5 + Categories.BuiltIn.Length] = Row(34f); // hidden objects
-            rows[6 + Categories.BuiltIn.Length] = Row(52f); // help text
+            rows[6 + Categories.BuiltIn.Length] = Row(34f); // hidden objects
+            rows[7 + Categories.BuiltIn.Length] = Row(52f); // help text
             float panelHeight = cursor + 16f;
 
             root = gui.CreateWoodpanel(
@@ -249,8 +253,8 @@ namespace XRays
                 LeftMargin,
                 rows[1],
                 430f,
-                60f,
-                14,
+                80f,
+                13,
                 BodyColor,
                 TextAnchor.MiddleLeft,
                 gui.AveriaSerif
@@ -301,11 +305,33 @@ namespace XRays
                 gui.AveriaSerif
             );
 
+            cloudsToggle = MakeToggle(
+                LeftMargin,
+                rows[4],
+                visibility.CloudsHidden,
+                v =>
+                {
+                    visibility.SetClouds(v);
+                    Refresh();
+                }
+            );
+            MakeText(
+                "Hide clouds",
+                LeftMargin + 36f,
+                rows[4],
+                300f,
+                26f,
+                15,
+                BodyColor,
+                TextAnchor.MiddleLeft,
+                gui.AveriaSerif
+            );
+
             // categories section
             MakeText(
                 "Categories (hide / show)",
                 LeftMargin,
-                rows[4],
+                rows[5],
                 350f,
                 24f,
                 16,
@@ -317,7 +343,7 @@ namespace XRays
             for (int i = 0; i < Categories.BuiltIn.Length; i++)
             {
                 Category category = Categories.BuiltIn[i];
-                float y = rows[5 + i];
+                float y = rows[6 + i];
 
                 CategoryRow row = new CategoryRow
                 {
@@ -356,7 +382,7 @@ namespace XRays
             }
 
             // hidden objects
-            int last = 5 + Categories.BuiltIn.Length;
+            int last = 6 + Categories.BuiltIn.Length;
             objectsText = MakeText(
                 "Hidden objects: 0",
                 LeftMargin,
@@ -395,7 +421,9 @@ namespace XRays
                 + XRays.Instance.KeyTerrain.Value
                 + " : terrain   ·   "
                 + XRays.Instance.KeyWater.Value
-                + " : water\n"
+                + " : water   ·   "
+                + XRays.Instance.KeyClouds.Value
+                + " : clouds\n"
                 + XRays.Instance.KeyPick.Value
                 + " : hide object under cursor   ·   "
                 + XRays.Instance.ModifierKey.Value

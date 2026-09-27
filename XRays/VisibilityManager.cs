@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -32,6 +33,16 @@ namespace XRays
             new Dictionary<int, Renderer>();
         private readonly Dictionary<int, RendererState> rendererStates =
             new Dictionary<int, RendererState>();
+
+        /// <summary>
+        /// The instanced grass is not drawn by a Renderer but by an
+        /// InstanceRenderer, which is disabled the same way (its original
+        /// state is memorised, then restored).
+        /// </summary>
+        private readonly Dictionary<int, InstanceRenderer> hiddenInstances =
+            new Dictionary<int, InstanceRenderer>();
+        private readonly Dictionary<int, bool> instanceStates = new Dictionary<int, bool>();
+
         private readonly Dictionary<int, GameObject> individualObjects =
             new Dictionary<int, GameObject>();
         private readonly HashSet<string> hiddenCategories = new HashSet<string>();
@@ -40,10 +51,12 @@ namespace XRays
 
         public bool TerrainHidden { get; private set; }
         public bool WaterHidden { get; private set; }
+        public bool CloudsHidden { get; private set; }
 
         public bool AnyActive =>
             TerrainHidden
             || WaterHidden
+            || CloudsHidden
             || hiddenCategories.Count > 0
             || individualObjects.Count > 0;
 
@@ -93,6 +106,21 @@ namespace XRays
         }
 
         public void ToggleWater() => SetWater(!WaterHidden);
+
+        // ---------------------------------------------------------------- clouds
+
+        public void SetClouds(bool hidden)
+        {
+            if (CloudsHidden == hidden)
+            {
+                return;
+            }
+
+            CloudsHidden = hidden;
+            Reconcile();
+        }
+
+        public void ToggleClouds() => SetClouds(!CloudsHidden);
 
         // ---------------------------------------------------------------- categories
 
@@ -186,6 +214,7 @@ namespace XRays
         {
             TerrainHidden = false;
             WaterHidden = false;
+            CloudsHidden = false;
             hiddenCategories.Clear();
             individualObjects.Clear();
             Reconcile();
@@ -216,21 +245,35 @@ namespace XRays
         {
             HashSet<int> waterIds = CollectWaterSurfaceIds();
             Dictionary<int, Renderer> wanted = new Dictionary<int, Renderer>();
+            Dictionary<int, InstanceRenderer> wantedInstances =
+                new Dictionary<int, InstanceRenderer>();
             HashSet<int> roots = new HashSet<int>();
 
             if (TerrainHidden)
             {
                 foreach (Heightmap heightmap in CollectHeightmaps())
                 {
-                    AddRenderers(heightmap != null ? heightmap.gameObject : null, wanted, waterIds);
+                    AddRenderers(
+                        heightmap != null ? heightmap.gameObject : null,
+                        wanted,
+                        wantedInstances,
+                        waterIds
+                    );
                 }
 
                 // Distant terrain (LOD), handled by a dedicated component
                 foreach (
-                    TerrainLod lod in Object.FindObjectsByType<TerrainLod>(FindObjectsSortMode.None)
+                    TerrainLod lod in UnityEngine.Object.FindObjectsByType<TerrainLod>(
+                        FindObjectsSortMode.None
+                    )
                 )
                 {
-                    AddRenderers(lod != null ? lod.gameObject : null, wanted, waterIds);
+                    AddRenderers(
+                        lod != null ? lod.gameObject : null,
+                        wanted,
+                        wantedInstances,
+                        waterIds
+                    );
                 }
             }
 
@@ -242,6 +285,29 @@ namespace XRays
                     {
                         wanted[volume.m_waterSurface.GetInstanceID()] = volume.m_waterSurface;
                     }
+                }
+
+                // the sea drawn beyond the loaded zones (the environment's ocean plane)
+                foreach (GameObject root in CollectOceanRoots())
+                {
+                    AddRenderers(root, wanted, wantedInstances, waterIds);
+                }
+            }
+
+            if (CloudsHidden)
+            {
+                foreach (GameObject root in CollectCloudRoots())
+                {
+                    AddRenderers(root, wanted, wantedInstances, null);
+                }
+
+                // the renderers the environment keeps a direct reference on
+                EnvMan env = EnvMan.instance;
+                if (env != null)
+                {
+                    AddWanted(env.m_clouds, wanted);
+                    AddWanted(env.m_rainClouds, wanted);
+                    AddWanted(env.m_rainCloudsDownside, wanted);
                 }
             }
 
@@ -261,7 +327,7 @@ namespace XRays
                     }
 
                     roots.Add(root.GetInstanceID());
-                    AddRenderers(root, wanted, waterIds);
+                    AddRenderers(root, wanted, wantedInstances, waterIds);
                 }
             }
 
@@ -274,13 +340,13 @@ namespace XRays
                 }
 
                 roots.Add(entry.Key);
-                AddRenderers(root, wanted, waterIds);
+                AddRenderers(root, wanted, wantedInstances, waterIds);
             }
 
             hiddenRoots.Clear();
             hiddenRoots.UnionWith(roots);
 
-            Apply(wanted);
+            Apply(wanted, wantedInstances);
         }
 
         // ---------------------------------------------------------------- internals
@@ -310,7 +376,7 @@ namespace XRays
                 }
             }
 
-            return Object.FindObjectsByType<Heightmap>(FindObjectsSortMode.None);
+            return UnityEngine.Object.FindObjectsByType<Heightmap>(FindObjectsSortMode.None);
         }
 
         private static IEnumerable<WaterVolume> CollectWaterVolumes()
@@ -321,7 +387,7 @@ namespace XRays
                 return instances;
             }
 
-            return Object.FindObjectsByType<WaterVolume>(FindObjectsSortMode.None);
+            return UnityEngine.Object.FindObjectsByType<WaterVolume>(FindObjectsSortMode.None);
         }
 
         private static HashSet<int> CollectWaterSurfaceIds()
@@ -339,9 +405,69 @@ namespace XRays
             return ids;
         }
 
+        /// <summary>
+        /// The sea drawn outside of the loaded zones: the ocean plane of the
+        /// environment (the object named "WaterPlane" below "_Environment").
+        /// The water toggle only hides the surfaces of the loaded zones
+        /// without it, which leaves the horizon visible.
+        /// </summary>
+        private static IEnumerable<GameObject> CollectOceanRoots()
+        {
+            return CollectEnvironmentRoots("water");
+        }
+
+        /// <summary>The clouds of the sky ("Clouds", "CloudCylinder", ...).</summary>
+        private static IEnumerable<GameObject> CollectCloudRoots()
+        {
+            return CollectEnvironmentRoots("cloud");
+        }
+
+        /// <summary>
+        /// The children of the environment object whose name contains that
+        /// word: only the dedicated objects are picked, never the environment
+        /// itself (it also holds the weather, the light and the mist).
+        /// </summary>
+        private static IEnumerable<GameObject> CollectEnvironmentRoots(string namePart)
+        {
+            List<GameObject> result = new List<GameObject>();
+            EnvMan env = EnvMan.instance;
+
+            if (env == null)
+            {
+                return result;
+            }
+
+            foreach (Transform child in env.transform)
+            {
+                if (
+                    child != null
+                    && child.name.IndexOf(namePart, StringComparison.OrdinalIgnoreCase) >= 0
+                )
+                {
+                    result.Add(child.gameObject);
+                }
+            }
+
+            return result;
+        }
+
+        private static void AddWanted(Renderer renderer, Dictionary<int, Renderer> wanted)
+        {
+            if (renderer != null)
+            {
+                wanted[renderer.GetInstanceID()] = renderer;
+            }
+        }
+
+        /// <summary>
+        /// Registers everything that must be hidden below that object: the
+        /// renderers (never the water surfaces, they belong to the water
+        /// toggle) and the InstanceRenderers drawing the instanced grass.
+        /// </summary>
         private static void AddRenderers(
             GameObject go,
             Dictionary<int, Renderer> wanted,
+            Dictionary<int, InstanceRenderer> wantedInstances,
             HashSet<int> excluded
         )
         {
@@ -367,9 +493,21 @@ namespace XRays
 
                 wanted[id] = renderer;
             }
+
+            InstanceRenderer[] instances = go.GetComponentsInChildren<InstanceRenderer>(true);
+            foreach (InstanceRenderer instance in instances)
+            {
+                if (instance != null)
+                {
+                    wantedInstances[instance.GetInstanceID()] = instance;
+                }
+            }
         }
 
-        private void Apply(Dictionary<int, Renderer> wanted)
+        private void Apply(
+            Dictionary<int, Renderer> wanted,
+            Dictionary<int, InstanceRenderer> wantedInstances
+        )
         {
             // 1) restore what should no longer be hidden
             List<int> toRestore = null;
@@ -394,6 +532,28 @@ namespace XRays
                 }
             }
 
+            List<int> instancesToRestore = null;
+            foreach (KeyValuePair<int, InstanceRenderer> entry in hiddenInstances)
+            {
+                if (!wantedInstances.ContainsKey(entry.Key))
+                {
+                    if (instancesToRestore == null)
+                    {
+                        instancesToRestore = new List<int>();
+                    }
+
+                    instancesToRestore.Add(entry.Key);
+                }
+            }
+
+            if (instancesToRestore != null)
+            {
+                foreach (int id in instancesToRestore)
+                {
+                    RestoreInstanceRenderer(id);
+                }
+            }
+
             // 2) hide the new ones
             foreach (KeyValuePair<int, Renderer> entry in wanted)
             {
@@ -410,6 +570,19 @@ namespace XRays
                 );
                 renderer.enabled = false;
                 renderer.forceRenderingOff = true;
+            }
+
+            foreach (KeyValuePair<int, InstanceRenderer> entry in wantedInstances)
+            {
+                if (hiddenInstances.ContainsKey(entry.Key))
+                {
+                    continue;
+                }
+
+                InstanceRenderer instance = entry.Value;
+                hiddenInstances[entry.Key] = instance;
+                instanceStates[entry.Key] = instance.enabled;
+                instance.enabled = false;
             }
 
             // 3) re-apply the hiding (some systems re-enable renderers) + purge destroyed objects
@@ -438,6 +611,32 @@ namespace XRays
                 {
                     hiddenRenderers.Remove(id);
                     rendererStates.Remove(id);
+                }
+            }
+
+            List<int> deadInstances = null;
+            foreach (KeyValuePair<int, InstanceRenderer> entry in hiddenInstances)
+            {
+                if (entry.Value == null)
+                {
+                    if (deadInstances == null)
+                    {
+                        deadInstances = new List<int>();
+                    }
+
+                    deadInstances.Add(entry.Key);
+                    continue;
+                }
+
+                entry.Value.enabled = false;
+            }
+
+            if (deadInstances != null)
+            {
+                foreach (int id in deadInstances)
+                {
+                    hiddenInstances.Remove(id);
+                    instanceStates.Remove(id);
                 }
             }
 
@@ -479,6 +678,22 @@ namespace XRays
 
                 hiddenRenderers.Remove(id);
                 rendererStates.Remove(id);
+            }
+        }
+
+        private void RestoreInstanceRenderer(int id)
+        {
+            InstanceRenderer instance;
+            if (hiddenInstances.TryGetValue(id, out instance))
+            {
+                bool enabled;
+                if (instance != null && instanceStates.TryGetValue(id, out enabled))
+                {
+                    instance.enabled = enabled;
+                }
+
+                hiddenInstances.Remove(id);
+                instanceStates.Remove(id);
             }
         }
     }

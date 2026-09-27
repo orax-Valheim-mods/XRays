@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
 
@@ -37,6 +38,19 @@ namespace XRays
         /// matches names, e.g. the small trees in "Trees"). Null otherwise.
         /// </summary>
         public string MatchedName;
+
+        /// <summary>
+        /// The mod side root that matched when neither a game type nor a name
+        /// rule did: "grass root" for the clutter spawned by the ClutterSystem.
+        /// </summary>
+        public string MatchedRoot;
+
+        /// <summary>
+        /// Path of the touched object, from the picked root down to the
+        /// collider: "_Zone(Clone)/Water/WaterSurface" for example. It tells
+        /// exactly which object was hit.
+        /// </summary>
+        public string HitPath;
     }
 
     /// <summary>
@@ -96,6 +110,7 @@ namespace XRays
                     result.Kind == PickKind.Object && result.Root != null
                         ? result.Root.transform.position
                         : hit.point;
+                result.HitPath = BuildHitPath(transform, result.Root);
 
                 if (result.Kind == PickKind.Terrain)
                 {
@@ -175,7 +190,19 @@ namespace XRays
                 line += "  ·  hidden";
             }
 
-            return line + "\n" + TypesLine(pick) + "\n" + Details(pick);
+            return line + "\n" + TypesLine(pick) + "\n" + HitLine(pick) + "\n" + Details(pick);
+        }
+
+        /// <summary>Debug line: the exact object the ray cast touched.</summary>
+        private static string HitLine(PickResult pick)
+        {
+            string path = pick.HitPath;
+            if (string.IsNullOrEmpty(path))
+            {
+                path = pick.Root != null ? pick.Root.name : pick.Name;
+            }
+
+            return "Hit: " + path;
         }
 
         /// <summary>
@@ -231,6 +258,10 @@ namespace XRays
             {
                 matched = "name (\"" + pick.MatchedName + "\")";
             }
+            else if (pick.MatchedRoot != null)
+            {
+                matched = pick.MatchedRoot;
+            }
             else
             {
                 matched = "?";
@@ -243,10 +274,9 @@ namespace XRays
         private static string Details(PickResult pick)
         {
             Vector3 position = pick.Position;
-            string prefix = pick.Kind == PickKind.Object ? "Pos" : "Hit";
 
-            return prefix
-                + " ("
+            // object position for an object, aimed point for the terrain / water
+            return "Pos ("
                 + Format(position.x)
                 + ", "
                 + Format(position.y)
@@ -271,6 +301,16 @@ namespace XRays
         {
             for (Transform current = start; current != null; current = current.parent)
             {
+                // never selectable: hiding the root of the game or of the
+                // environment would hide everything they hold
+                if (
+                    current.GetComponent<ClutterSystem>() != null
+                    || current.GetComponent<EnvMan>() != null
+                )
+                {
+                    return null;
+                }
+
                 if (current.GetComponent<Heightmap>() != null)
                 {
                     return new PickResult
@@ -282,7 +322,7 @@ namespace XRays
                     };
                 }
 
-                if (current.GetComponent<WaterVolume>() != null)
+                if (current.GetComponent<WaterVolume>() != null || IsWaterSurface(current))
                 {
                     return new PickResult
                     {
@@ -316,6 +356,14 @@ namespace XRays
                     }
                 }
 
+                // clutter spawned below the grass root: the props carry no
+                // known component, so only that root tells what they are
+                Transform grassItem = Categories.GrassItem(current);
+                if (grassItem != null)
+                {
+                    return GrassResult(grassItem);
+                }
+
                 // "object root" markers: network view or level of detail
                 if (
                     current.GetComponent<ZNetView>() != null
@@ -332,6 +380,52 @@ namespace XRays
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// The water surfaces: the one of a loaded zone (a sibling of its
+        /// WaterVolume, so walking up would never find it) and the plane of
+        /// the environment drawing the sea beyond the zones. Both are named
+        /// "WaterSurface".
+        /// </summary>
+        private static bool IsWaterSurface(Transform current)
+        {
+            if (current.GetComponent<Water>() != null)
+            {
+                return true;
+            }
+
+            return string.Equals(current.name, "WaterSurface", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>Result for a clutter item spawned below the grass root.</summary>
+        private static PickResult GrassResult(Transform item)
+        {
+            Category clutter;
+            Categories.TryGet("clutter", out clutter);
+
+            PickResult result = new PickResult
+            {
+                Kind = PickKind.Object,
+                Category = clutter,
+                Root = item.gameObject,
+                Name = item.name
+            };
+
+            if (item.GetComponent<InstanceRenderer>() != null)
+            {
+                result.MatchedType = typeof(InstanceRenderer);
+            }
+            else if (clutter != null && clutter.MatchesName(item.name))
+            {
+                result.MatchedName = item.name;
+            }
+            else
+            {
+                result.MatchedRoot = "grass root";
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -363,6 +457,29 @@ namespace XRays
                 Root = current.gameObject,
                 Name = current.name
             };
+        }
+
+        /// <summary>
+        /// Path of the touched object, from the picked root down to the
+        /// collider (capped so a stray hit stays readable).
+        /// </summary>
+        private static string BuildHitPath(Transform hit, GameObject root)
+        {
+            const int MaxSegments = 6;
+            List<string> parts = new List<string>(MaxSegments);
+            Transform stop = root != null ? root.transform : null;
+
+            for (Transform current = hit; current != null; current = current.parent)
+            {
+                parts.Add(current.name);
+                if (current == stop || parts.Count >= MaxSegments)
+                {
+                    break;
+                }
+            }
+
+            parts.Reverse();
+            return string.Join("/", parts);
         }
 
         private static Camera GetCamera()

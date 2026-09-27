@@ -25,6 +25,7 @@ namespace XRays
         internal ConfigEntry<KeyCode> KeyPanel;
         internal ConfigEntry<KeyCode> KeyTerrain;
         internal ConfigEntry<KeyCode> KeyWater;
+        internal ConfigEntry<KeyCode> KeyClouds;
         internal ConfigEntry<KeyCode> KeyPick;
         internal ConfigEntry<KeyCode> ModifierKey;
 
@@ -59,6 +60,12 @@ namespace XRays
                 "Water",
                 KeyCode.F10,
                 "Hide / show the water surface."
+            );
+            KeyClouds = Config.Bind(
+                "Hotkeys",
+                "Clouds",
+                KeyCode.F6,
+                "Hide / show the clouds in the sky."
             );
             KeyPick = Config.Bind(
                 "Hotkeys",
@@ -143,6 +150,11 @@ namespace XRays
                         ToggleWater();
                     }
 
+                    if (Hotkey(KeyClouds, blocked))
+                    {
+                        ToggleClouds();
+                    }
+
                     if (Hotkey(KeyPick, blocked))
                     {
                         if (ModifierHeld())
@@ -178,6 +190,12 @@ namespace XRays
         {
             Visibility.ToggleWater();
             Notify(Visibility.WaterHidden ? "Water hidden" : "Water shown");
+        }
+
+        internal void ToggleClouds()
+        {
+            Visibility.ToggleClouds();
+            Notify(Visibility.CloudsHidden ? "Clouds hidden" : "Clouds shown");
         }
 
         internal void ToggleObjectUnderCursor()

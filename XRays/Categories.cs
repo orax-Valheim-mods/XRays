@@ -25,6 +25,13 @@ namespace XRays
         /// </summary>
         public string[] NameContains;
 
+        /// <summary>
+        /// Roots the mod finds on its own, for the objects that carry no game
+        /// component at all: the clutter below the grass root of the
+        /// ClutterSystem for example.
+        /// </summary>
+        public Func<List<GameObject>> RootProvider;
+
         public bool SkipLocalPlayer;
 
         public bool IsNameCategory =>
@@ -155,7 +162,22 @@ namespace XRays
             {
                 Key = "clutter",
                 Label = "Grass / vegetation",
-                Types = new[] { typeof(ClutterSystem) }
+                // the grass patches are drawn by InstanceRenderer, not by a Renderer
+                Types = new[] { typeof(InstanceRenderer) },
+                // bushes and isolated plants only carry a Destructible
+                NameContains = new[]
+                {
+                    "bush",
+                    "shrub",
+                    "grass",
+                    "fern",
+                    "reed",
+                    "moss",
+                    "mushroom",
+                    "flower"
+                },
+                // the clutter spawned by the ClutterSystem lives under "grassroot"
+                RootProvider = GrassRoots
             }
         };
 
@@ -222,6 +244,7 @@ namespace XRays
                 return roots;
             }
 
+            AddProvidedRoots(category, roots, seen);
             AddTypedRoots(category, roots, seen);
 
             if (category.HasNameMatch)
@@ -243,7 +266,102 @@ namespace XRays
             return CollectRoots(category).Count;
         }
 
+        /// <summary>
+        /// The grass root of the ClutterSystem: below it sit the clutter
+        /// patches (the instanced grass) and the clutter props. The manager
+        /// itself lives on the root of the scene, so it is never a root: it
+        /// would hide the clouds, the sea and the weather with the grass.
+        /// </summary>
+        public static List<GameObject> GrassRoots()
+        {
+            List<GameObject> roots = new List<GameObject>();
+            Transform grassRoot = GrassRoot();
+            if (grassRoot != null)
+            {
+                roots.Add(grassRoot.gameObject);
+            }
+
+            return roots;
+        }
+
+        /// <summary>The "grassroot" object of the ClutterSystem, if it is loaded.</summary>
+        public static Transform GrassRoot()
+        {
+            ClutterSystem clutter = ClutterSystem.instance;
+            if (clutter == null)
+            {
+                foreach (
+                    UnityEngine.Object obj in UnityEngine.Object.FindObjectsByType(
+                        typeof(ClutterSystem),
+                        FindObjectsSortMode.None
+                    )
+                )
+                {
+                    clutter = (obj as Component) as ClutterSystem;
+                    if (clutter != null)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            return clutter != null ? clutter.transform.Find("grassroot") : null;
+        }
+
+        /// <summary>
+        /// The clutter item holding that object: the direct child of the grass
+        /// root (the whole patch or prop, not just one of its parts). Null
+        /// when the object does not belong to the grass root.
+        /// </summary>
+        public static Transform GrassItem(Transform transform)
+        {
+            Transform grassRoot = GrassRoot();
+            if (
+                grassRoot == null
+                || transform == null
+                || (transform != grassRoot && !transform.IsChildOf(grassRoot))
+            )
+            {
+                return null;
+            }
+
+            Transform item = transform;
+            while (item != grassRoot && item.parent != null && item.parent != grassRoot)
+            {
+                item = item.parent;
+            }
+
+            return item;
+        }
+
         // ---------------------------------------------------------------- internals
+
+        /// <summary>The roots a category computes itself (see RootProvider).</summary>
+        private static void AddProvidedRoots(
+            Category category,
+            List<GameObject> roots,
+            HashSet<int> seen
+        )
+        {
+            if (category.RootProvider == null)
+            {
+                return;
+            }
+
+            List<GameObject> provided = category.RootProvider();
+            if (provided == null)
+            {
+                return;
+            }
+
+            foreach (GameObject go in provided)
+            {
+                if (go != null && seen.Add(go.GetInstanceID()))
+                {
+                    roots.Add(go);
+                }
+            }
+        }
 
         /// <summary>The objects holding one of the game components of the category.</summary>
         private static void AddTypedRoots(
