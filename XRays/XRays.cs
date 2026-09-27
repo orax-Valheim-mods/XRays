@@ -30,6 +30,14 @@ namespace XRays
 
         internal ConfigEntry<float> PickDistance;
 
+        internal ConfigEntry<bool> LogCursorInfo;
+
+        /// <summary>How often the "Under the cursor" info is sampled for logging.</summary>
+        private const float CursorLogInterval = 0.4f;
+
+        private float cursorLogTimer;
+        private string lastCursorLog;
+
         private void Awake()
         {
             Instance = this;
@@ -46,6 +54,8 @@ namespace XRays
                 "Hold together with Pick to act on the whole category.");
             PickDistance = Config.Bind("Selection", "Max distance", 100f,
                 "Maximum picking distance under the cursor (in meters).");
+            LogCursorInfo = Config.Bind("Logging", "Log cursor info", false,
+                "Write the \"Under the cursor\" info (the exact text shown in the panel) to the BepInEx log whenever it changes.");
 
             Visibility = new VisibilityManager();
             Panel = new Panel(this, Visibility);
@@ -79,6 +89,7 @@ namespace XRays
             if (Visibility != null)
             {
                 Visibility.Tick(deltaTime);
+                TickCursorLog(deltaTime);
             }
 
             bool consoleBlocked = Blocked();
@@ -206,6 +217,39 @@ namespace XRays
         private PickResult Pick()
         {
             return PickService.Pick(PickDistance.Value, Visibility);
+        }
+
+        /// <summary>
+        /// Optional logging of the "Under the cursor" info: same text as the
+        /// panel, sampled periodically and written only when it changes so the
+        /// log stays readable. Works whether the panel is open or not.
+        /// </summary>
+        private void TickCursorLog(float deltaTime)
+        {
+            if (LogCursorInfo == null || !LogCursorInfo.Value)
+            {
+                // reset so that re-enabling the option logs the current target again
+                lastCursorLog = null;
+                cursorLogTimer = 0f;
+                return;
+            }
+
+            cursorLogTimer += deltaTime;
+            if (cursorLogTimer < CursorLogInterval)
+            {
+                return;
+            }
+
+            cursorLogTimer = 0f;
+
+            string text = PickService.Describe(PickDistance.Value, Visibility);
+            if (text == lastCursorLog)
+            {
+                return;
+            }
+
+            lastCursorLog = text;
+            Logger.LogInfo(text.Replace("\n", "  |  "));
         }
 
         private bool ModifierHeld()

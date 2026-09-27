@@ -56,8 +56,31 @@ Vortex, r2modman or Gale.
 
 ## Configuration
 
-All hotkeys and the picking distance can be edited in
-`BepInEx\config\orax.XRays.cfg` (created on the first launch).
+All options live in `BepInEx\config\orax.XRays.cfg` (created on the first
+launch, also editable in game through Jötunn's ConfigManager):
+
+| Section | Option | Default | Description |
+| --- | --- | --- | --- |
+| `Hotkeys` | `Panel` | `F8` | Opens / closes the XRays panel |
+| `Hotkeys` | `Terrain` | `F7` | Hides / shows the terrain |
+| `Hotkeys` | `Water` | `F10` | Hides / shows the water |
+| `Hotkeys` | `Pick` | `F9` | Hides / shows the object under the cursor |
+| `Hotkeys` | `Category modifier` | `LeftControl` | Hold together with `Pick` to act on the whole category |
+| `Selection` | `Max distance` | `100` | Maximum picking distance (meters) |
+| `Logging` | `Log cursor info` | `false` | Writes the panel's "Under the cursor" text to the BepInEx log |
+
+### Logging the cursor info
+
+With `Logging → Log cursor info = true`, the mod writes to `BepInEx\LogOutput.log`
+exactly what the panel shows (element, category, hidden state, game types,
+coordinates, distance). The text is sampled every 0.4 s and logged **only when
+it changes**, as a single line (the panel's line breaks become ` | `), and the
+panel does not need to be open. Handy to find which game types back a given
+prefab:
+
+```
+[Info : XRays] Under the cursor: Birch1  ·  Category: Trees  ·  hidden  |  Game types: TreeBase, TreeLog  ·  match: TreeBase  |  Pos (1234.5, 67.8, -910.2)  ·  42.3 m
+```
 
 ## Development
 
