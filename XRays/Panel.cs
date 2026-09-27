@@ -26,11 +26,47 @@ namespace XRays
         private const float RefreshInterval = 0.4f;
         private const float CountInterval = 1.5f;
 
+        /// <summary>Limits of the "Panel height" option (vertical size).</summary>
+        private const float MinPanelHeight = 360f;
+
+        private const float MaxPanelHeight = 1200f;
+
+        /// <summary>Free space kept under the scrolling area.</summary>
+        private const float BottomPadding = 8f;
+
+        /// <summary>Smallest usable scrolling area.</summary>
+        private const float MinViewportHeight = 160f;
+
+        /// <summary>Scrollbar, in the right margin of the panel.</summary>
+        private const float ScrollbarInset = 6f;
+
+        private const float ScrollbarWidth = 10f;
+
         private readonly XRays plugin;
         private readonly VisibilityManager visibility;
         private readonly List<CategoryRow> categoryRows = new List<CategoryRow>();
 
         private GameObject root;
+
+        /// <summary>
+        /// Parent of the elements being built: the panel itself for the
+        /// header, the scrolling content for everything below it.
+        /// </summary>
+        private Transform container;
+
+        private RectTransform viewportRect;
+        private RectTransform contentRect;
+        private RectTransform scrollbarRect;
+
+        /// <summary>Height of the header (title + margins), fixed on screen.</summary>
+        private float headerHeight;
+
+        /// <summary>Height the rows need, whatever the panel is given.</summary>
+        private float contentHeight;
+
+        /// <summary>Height the panel was built with (the option may change).</summary>
+        private float builtHeight;
+
         private Toggle terrainToggle;
         private Toggle waterToggle;
         private Toggle cloudsToggle;
@@ -43,6 +79,9 @@ namespace XRays
         private float countTimer;
 
         private Color BodyColor => new Color(0.93f, 0.88f, 0.79f, 1f);
+
+        /// <summary>Where the next element is created (header or content).</summary>
+        private Transform Parent => container != null ? container : root.transform;
 
         public Panel(XRays owner, VisibilityManager manager)
         {
@@ -106,6 +145,13 @@ namespace XRays
         public void Invalidate()
         {
             root = null;
+            container = null;
+            viewportRect = null;
+            contentRect = null;
+            scrollbarRect = null;
+            headerHeight = 0f;
+            contentHeight = 0f;
+            builtHeight = 0f;
             terrainToggle = null;
             waterToggle = null;
             cloudsToggle = null;
@@ -145,6 +191,14 @@ namespace XRays
             if (!IsOpen)
             {
                 return;
+            }
+
+            // the "Panel height" option may have been changed while the
+            // panel is open (config manager), apply it right away
+            float wanted = Mathf.Clamp(plugin.PanelHeight.Value, MinPanelHeight, MaxPanelHeight);
+            if (!Mathf.Approximately(wanted, builtHeight))
+            {
+                ApplyHeight(wanted);
             }
 
             terrainToggle.SetIsOnWithoutNotify(visibility.TerrainHidden);
@@ -214,9 +268,15 @@ namespace XRays
             }
 
             // pre-compute the panel layout: one single list of options, the
-            // world layers first and the categories right after them
+            // world layers first and the categories right after them. Only
+            // the title belongs to the fixed header, the rest scrolls.
             float[] rows = new float[10 + Categories.BuiltIn.Length];
-            rows[0] = Row(44f); // title
+            rows[0] = Row(44f); // title (header)
+            headerHeight = cursor + 16f; // margins of the header, then the viewport
+
+            // the scrolling content has its own top margin: the height of
+            // the panel is an option, so it is not part of this list
+            cursor = 14f;
 
             // under the cursor: the text wraps over several lines (element,
             // game types, hit, coordinates), so it gets a whole extra line
@@ -234,7 +294,9 @@ namespace XRays
             rows[7 + Categories.BuiltIn.Length] = Row(30f); // hidden objects
             rows[8 + Categories.BuiltIn.Length] = Row(34f); // global buttons
             rows[9 + Categories.BuiltIn.Length] = Row(100f); // help text (5 lines)
-            float panelHeight = cursor + 16f;
+            contentHeight = cursor + 16f;
+
+            builtHeight = Mathf.Clamp(plugin.PanelHeight.Value, MinPanelHeight, MaxPanelHeight);
 
             root = gui.CreateWoodpanel(
                 GUIManager.CustomGUIFront.transform,
@@ -242,7 +304,7 @@ namespace XRays
                 new Vector2(0.5f, 0.5f),
                 new Vector2(280f, 0f),
                 PanelWidth,
-                panelHeight,
+                builtHeight,
                 true
             );
 
@@ -253,8 +315,10 @@ namespace XRays
             }
 
             categoryRows.Clear();
+            container = root.transform;
 
-            // title + close button
+            // title + close button: they belong to the header, they never
+            // scroll out of sight
             MakeText(
                 "XRays — Visibility",
                 LeftMargin,
@@ -268,6 +332,9 @@ namespace XRays
             );
             Button close = MakeButton("Close", RightMargin, rows[0], 96f, 30f);
             close.onClick.AddListener(Close);
+
+            // everything below the header lives in the scrolling area
+            MakeScrollArea();
 
             // "under the cursor" line
             cursorText = MakeText(
@@ -477,7 +544,165 @@ namespace XRays
                 gui.AveriaSerif
             );
 
+            container = null;
             return true;
+        }
+
+        /// <summary>
+        /// Builds the scrolling area: a clipped viewport under the header,
+        /// the content as high as the rows need, and the scrollbar in the
+        /// right margin of the panel.
+        /// </summary>
+        private void MakeScrollArea()
+        {
+            float viewportHeight = GetViewportHeight(builtHeight);
+
+            GameObject viewportGo = new GameObject(
+                "XRaysViewport",
+                typeof(RectTransform),
+                typeof(CanvasRenderer),
+                typeof(Image),
+                typeof(RectMask2D),
+                typeof(ScrollRect)
+            );
+            viewportRect = (RectTransform)viewportGo.transform;
+            viewportRect.SetParent(root.transform, false);
+            viewportRect.anchorMin = new Vector2(0.5f, 1f);
+            viewportRect.anchorMax = new Vector2(0.5f, 1f);
+            viewportRect.pivot = new Vector2(0.5f, 1f);
+            viewportRect.anchoredPosition = new Vector2(0f, -headerHeight);
+            viewportRect.sizeDelta = new Vector2(PanelWidth, viewportHeight);
+
+            // invisible: it only catches the mouse wheel and the drags that
+            // do not start on one of the rows
+            Image veil = viewportGo.GetComponent<Image>();
+            veil.color = new Color(0f, 0f, 0f, 0f);
+            veil.raycastTarget = true;
+
+            // the content is as high as the rows need, never less than the
+            // viewport (a shorter one would be pushed to the bottom)
+            contentRect = MakeContentRect(viewportHeight);
+
+            ScrollRect scroll = viewportGo.GetComponent<ScrollRect>();
+            scroll.content = contentRect;
+            scroll.viewport = viewportRect;
+            scroll.horizontal = false;
+            scroll.vertical = true;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.inertia = false;
+            scroll.scrollSensitivity = 30f;
+            scroll.verticalNormalizedPosition = 1f;
+
+            Scrollbar bar = MakeScrollbar(viewportHeight);
+            scroll.verticalScrollbar = bar;
+            scroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHide;
+            scroll.verticalScrollbarSpacing = 4f;
+
+            container = contentRect;
+        }
+
+        /// <summary>Top centred container the rows are created in.</summary>
+        private RectTransform MakeContentRect(float viewportHeight)
+        {
+            GameObject go = new GameObject("XRaysContent", typeof(RectTransform));
+            RectTransform rect = (RectTransform)go.transform;
+            rect.SetParent(viewportRect, false);
+            rect.anchorMin = new Vector2(0.5f, 1f);
+            rect.anchorMax = new Vector2(0.5f, 1f);
+            rect.pivot = new Vector2(0.5f, 1f);
+            rect.anchoredPosition = Vector2.zero;
+            rect.sizeDelta = new Vector2(PanelWidth, Mathf.Max(contentHeight, viewportHeight));
+            return rect;
+        }
+
+        /// <summary>Hand made scrollbar, matching the panel colors.</summary>
+        private Scrollbar MakeScrollbar(float viewportHeight)
+        {
+            GameObject trackGo = new GameObject(
+                "XRaysScrollbar",
+                typeof(RectTransform),
+                typeof(CanvasRenderer),
+                typeof(Image),
+                typeof(Scrollbar)
+            );
+            scrollbarRect = (RectTransform)trackGo.transform;
+            scrollbarRect.SetParent(root.transform, false);
+            scrollbarRect.anchorMin = new Vector2(1f, 1f);
+            scrollbarRect.anchorMax = new Vector2(1f, 1f);
+            scrollbarRect.pivot = new Vector2(1f, 0.5f);
+            scrollbarRect.anchoredPosition = new Vector2(
+                -ScrollbarInset,
+                -(headerHeight + viewportHeight / 2f)
+            );
+            scrollbarRect.sizeDelta = new Vector2(ScrollbarWidth, viewportHeight);
+
+            Image track = trackGo.GetComponent<Image>();
+            track.color = new Color(0f, 0f, 0f, 0.4f);
+
+            GameObject handleGo = new GameObject(
+                "Handle",
+                typeof(RectTransform),
+                typeof(CanvasRenderer),
+                typeof(Image)
+            );
+            RectTransform handle = (RectTransform)handleGo.transform;
+            handle.SetParent(scrollbarRect, false);
+            handle.anchorMin = new Vector2(0f, 0f);
+            handle.anchorMax = new Vector2(1f, 1f);
+            handle.offsetMin = new Vector2(1f, 2f);
+            handle.offsetMax = new Vector2(-1f, -2f);
+
+            Image handleImage = handleGo.GetComponent<Image>();
+            handleImage.color = BodyColor;
+
+            Scrollbar scrollbar = trackGo.GetComponent<Scrollbar>();
+            scrollbar.handleRect = handle;
+            scrollbar.targetGraphic = handleImage;
+            scrollbar.direction = Scrollbar.Direction.BottomToTop;
+
+            // the stock color block would paint the handle in plain white
+            ColorBlock colors = scrollbar.colors;
+            colors.normalColor = BodyColor;
+            colors.highlightedColor = new Color(1f, 0.96f, 0.88f, 1f);
+            colors.pressedColor = new Color(0.76f, 0.70f, 0.60f, 1f);
+            colors.selectedColor = BodyColor;
+            colors.disabledColor = new Color(0.5f, 0.5f, 0.5f, 0.8f);
+            colors.fadeDuration = 0.1f;
+            scrollbar.colors = colors;
+
+            return scrollbar;
+        }
+
+        /// <summary>Height of the scrolling area for a given panel height.</summary>
+        private float GetViewportHeight(float panelHeight)
+        {
+            return Mathf.Max(MinViewportHeight, panelHeight - headerHeight - BottomPadding);
+        }
+
+        /// <summary>
+        /// Applies a new value of the "Panel height" option without
+        /// rebuilding anything: only the three rectangles are resized.
+        /// </summary>
+        private void ApplyHeight(float height)
+        {
+            builtHeight = height;
+            float viewportHeight = GetViewportHeight(height);
+
+            RectTransform panel = root.GetComponent<RectTransform>();
+            panel.sizeDelta = new Vector2(PanelWidth, height);
+
+            viewportRect.anchoredPosition = new Vector2(0f, -headerHeight);
+            viewportRect.sizeDelta = new Vector2(PanelWidth, viewportHeight);
+            contentRect.sizeDelta = new Vector2(
+                PanelWidth,
+                Mathf.Max(contentHeight, viewportHeight)
+            );
+
+            scrollbarRect.anchoredPosition = new Vector2(
+                -ScrollbarInset,
+                -(headerHeight + viewportHeight / 2f)
+            );
+            scrollbarRect.sizeDelta = new Vector2(ScrollbarWidth, viewportHeight);
         }
 
         private string PluginHelpText()
@@ -557,7 +782,7 @@ namespace XRays
         {
             GameObject go = GUIManager.Instance.CreateText(
                 content,
-                root.transform,
+                Parent,
                 new Vector2(0.5f, 1f),
                 new Vector2(0.5f, 1f),
                 Vector2.zero,
@@ -586,7 +811,7 @@ namespace XRays
         {
             GameObject go = GUIManager.Instance.CreateButton(
                 label,
-                root.transform,
+                Parent,
                 new Vector2(0.5f, 1f),
                 new Vector2(0.5f, 1f),
                 Vector2.zero,
@@ -605,11 +830,7 @@ namespace XRays
 
         private Toggle MakeToggle(float x, float y, bool initial, System.Action<bool> onChanged)
         {
-            GameObject go = GUIManager.Instance.CreateToggle(
-                root.transform,
-                ToggleSize,
-                ToggleSize
-            );
+            GameObject go = GUIManager.Instance.CreateToggle(Parent, ToggleSize, ToggleSize);
 
             RectTransform rect = go.GetComponent<RectTransform>();
             rect.anchorMin = new Vector2(0.5f, 1f);

@@ -35,6 +35,8 @@ namespace XRays
 
         internal ConfigEntry<float> PickDistance;
 
+        internal ConfigEntry<float> PanelHeight;
+
         internal ConfigEntry<bool> LogCursorInfo;
 
         /// <summary>How often the "Under the cursor" info is sampled for logging.</summary>
@@ -120,6 +122,15 @@ namespace XRays
                 "Max distance",
                 100f,
                 "Maximum picking distance under the cursor (in meters)."
+            );
+            PanelHeight = Config.Bind(
+                "Display",
+                "Panel height",
+                760f,
+                new ConfigDescription(
+                    "Vertical size of the control panel in pixels. The rows scroll under the title when they do not fit in it.",
+                    new AcceptableValueRange<float>(360f, 1200f)
+                )
             );
             LogCursorInfo = Config.Bind(
                 "Logging",

@@ -13,7 +13,10 @@ Two ways to use it:
   next press turns it into **Restore** and brings that exact setup back — with
   nothing checked the first press checks every option instead), **Hide all**
   (everything in that list at once) and **Show all** (back to the normal
-  world).
+  world). The title and the **Close** button stay on top of the panel while
+  the list scrolls under them, with the mouse wheel or the scrollbar on the
+  right; the height of the panel itself is the `Display` → `Panel height`
+  option.
 * **The keyboard hotkeys**: they act directly on the element under the
   cursor.
 
@@ -145,8 +148,10 @@ launch, also editable in game through Jötunn's ConfigManager):
 | `Hotkeys` | `Player` | `F4` | Hides / shows your own character (the Creatures category never includes it) |
 | `Hotkeys` | `HUD` | `F3` | Hides / shows the HUD (the game's own `Ctrl` + `F3` does the same) |
 | `Hotkeys` | `Pick` | `F9` | Hides / shows the object under the cursor |
+| `Hotkeys` | `Reveal` | `F2` | Shows every checked option at once, then brings that exact setup back |
 | `Hotkeys` | `Category modifier` | `LeftControl` | Hold together with `Pick` to act on the whole category |
 | `Selection` | `Max distance` | `100` | Maximum picking distance (meters) |
+| `Display` | `Panel height` | `760` | Vertical size of the panel (360 to 1200 pixels); the rows scroll when they do not fit in it |
 | `Logging` | `Log cursor info` | `false` | Logs the panel's "Under the cursor" text, only while the panel is on screen |
 
 ### Logging the cursor info

@@ -40,7 +40,8 @@ dotnet build XRays.sln
 
 ## Configuration
 
-Hotkeys and picking distance: `BepInEx\config\orax.XRays.cfg`
+Hotkeys, picking distance and the vertical size of the panel:
+`BepInEx\config\orax.XRays.cfg`
 (created on the first launch, also editable in game through Jötunn's
 ConfigManager).
 
