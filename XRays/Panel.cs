@@ -211,7 +211,7 @@ namespace XRays
             }
 
             rows[6 + Categories.BuiltIn.Length] = Row(34f); // hidden objects
-            rows[7 + Categories.BuiltIn.Length] = Row(52f); // help text
+            rows[7 + Categories.BuiltIn.Length] = Row(66f); // help text
             float panelHeight = cursor + 16f;
 
             root = gui.CreateWoodpanel(
@@ -404,7 +404,7 @@ namespace XRays
                 LeftMargin,
                 rows[last + 1],
                 430f,
-                50f,
+                64f,
                 13,
                 BodyColor,
                 TextAnchor.MiddleLeft,
@@ -418,18 +418,20 @@ namespace XRays
         {
             return XRays.Instance.KeyPanel.Value
                 + " : panel   ·   "
+                + XRays.Instance.KeyClose.Value
+                + " : close   ·   "
                 + XRays.Instance.KeyTerrain.Value
-                + " : terrain   ·   "
+                + " : terrain\n"
                 + XRays.Instance.KeyWater.Value
                 + " : water   ·   "
                 + XRays.Instance.KeyClouds.Value
-                + " : clouds\n"
+                + " : clouds   ·   "
                 + XRays.Instance.KeyPick.Value
-                + " : hide object under cursor   ·   "
+                + " : hide object under cursor\n"
                 + XRays.Instance.ModifierKey.Value
                 + " + "
                 + XRays.Instance.KeyPick.Value
-                + " : whole category";
+                + " : whole category under the cursor";
         }
 
         private void OnCategoryToggle(Category category, bool hidden)

@@ -23,6 +23,7 @@ namespace XRays
 
         // Hotkeys (labels shown in the panel help text)
         internal ConfigEntry<KeyCode> KeyPanel;
+        internal ConfigEntry<KeyCode> KeyClose;
         internal ConfigEntry<KeyCode> KeyTerrain;
         internal ConfigEntry<KeyCode> KeyWater;
         internal ConfigEntry<KeyCode> KeyClouds;
@@ -36,6 +37,14 @@ namespace XRays
         /// <summary>How often the "Under the cursor" info is sampled for logging.</summary>
         private const float CursorLogInterval = 0.4f;
 
+        /// <summary>
+        /// The game opens its own pause menu on Escape: for a short moment
+        /// after the panel has been closed with that key, the menu is kept
+        /// closed so the key only does what the user asked for.
+        /// </summary>
+        private const float MenuSuppressDuration = 0.25f;
+
+        private float menuSuppressTimer;
         private float cursorLogTimer;
         private string lastCursorLog;
 
@@ -48,6 +57,12 @@ namespace XRays
                 "Panel",
                 KeyCode.F8,
                 "Open / close the XRays control panel."
+            );
+            KeyClose = Config.Bind(
+                "Hotkeys",
+                "Close",
+                KeyCode.Escape,
+                "Close the XRays panel (Escape by default)."
             );
             KeyTerrain = Config.Bind(
                 "Hotkeys",
@@ -132,6 +147,24 @@ namespace XRays
             if (Hotkey(KeyPanel, consoleBlocked))
             {
                 Panel.Toggle();
+            }
+
+            // closing the panel with Escape: the game would open its own menu
+            // on the very same key press
+            if (Panel != null && Panel.IsOpen && Hotkey(KeyClose, consoleBlocked) && !GameGuiOpen())
+            {
+                Panel.Close();
+                menuSuppressTimer = MenuSuppressDuration;
+            }
+
+            // the game menu may be shown after this Update (same frame)
+            if (menuSuppressTimer > 0f)
+            {
+                menuSuppressTimer -= deltaTime;
+                if (Menu.IsVisible() && Menu.instance != null)
+                {
+                    Menu.instance.Hide();
+                }
             }
 
             if (Panel != null)
@@ -339,6 +372,18 @@ namespace XRays
 
             Player player = Player.m_localPlayer;
             return player != null && player.IsDead();
+        }
+
+        /// <summary>
+        /// Another game window is on screen (inventory, map, console, text
+        /// input): Escape belongs to that window, not to the panel.
+        /// </summary>
+        private static bool GameGuiOpen()
+        {
+            return InventoryGui.IsVisible()
+                || Minimap.IsOpen()
+                || Console.IsVisible()
+                || TextInput.IsVisible();
         }
 
         private void Notify(string text)

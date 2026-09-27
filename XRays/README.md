@@ -16,6 +16,7 @@ Two ways to use it:
 | Key | Action |
 | --- | --- |
 | `F8` | Opens / closes the XRays panel |
+| `Escape` | Closes the panel while it is on screen (the game pause menu stays closed) |
 | `F7` | Hides / shows the **terrain** |
 | `F10` | Hides / shows the **water** (zones and the sea on the horizon) |
 | `F6` | Hides / shows the **clouds** of the sky |
@@ -86,6 +87,7 @@ launch, also editable in game through Jötunn's ConfigManager):
 | Section | Option | Default | Description |
 | --- | --- | --- | --- |
 | `Hotkeys` | `Panel` | `F8` | Opens / closes the XRays panel |
+| `Hotkeys` | `Close` | `Escape` | Closes the XRays panel |
 | `Hotkeys` | `Terrain` | `F7` | Hides / shows the terrain |
 | `Hotkeys` | `Water` | `F10` | Hides / shows the water |
 | `Hotkeys` | `Clouds` | `F6` | Hides / shows the clouds |
