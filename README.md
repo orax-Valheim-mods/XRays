@@ -1,11 +1,11 @@
 # XRays
 
 A Valheim "X-Ray vision" mod: hides the terrain, the water, your own
-character, categories of world objects or a single object under the cursor so
-you can see what is behind them.
+character, the HUD, categories of world objects or a single object under the
+cursor so you can see what is behind them.
 
 * Built-in control panel (vanilla woodpanel via [Jötunn](https://valheim-modding.github.io/Jotunn/)).
-* Keyboard hotkeys: `F8` panel · `Esc` close · `F7` terrain · `F10` water · `F6` clouds · `F4` player · `F9` object under the cursor · `Ctrl+F9` whole category.
+* Keyboard hotkeys: `F8` panel · `Esc` close · `F7` terrain · `F10` water · `F6` clouds · `F4` player · `F3` hud · `F9` object under the cursor · `Ctrl+F9` whole category.
 * Client-side only, no server change: only `Renderer`s are disabled (their
   original state is memorised and restored), colliders are never touched.
 

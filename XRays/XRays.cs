@@ -28,6 +28,7 @@ namespace XRays
         internal ConfigEntry<KeyCode> KeyWater;
         internal ConfigEntry<KeyCode> KeyClouds;
         internal ConfigEntry<KeyCode> KeyPlayer;
+        internal ConfigEntry<KeyCode> KeyHud;
         internal ConfigEntry<KeyCode> KeyPick;
         internal ConfigEntry<KeyCode> ModifierKey;
 
@@ -88,6 +89,12 @@ namespace XRays
                 "Player",
                 KeyCode.F4,
                 "Hide / show your own character (body, armor and held item). The other players belong to the Creatures category."
+            );
+            KeyHud = Config.Bind(
+                "Hotkeys",
+                "HUD",
+                KeyCode.F3,
+                "Hide / show the HUD (bars, hot bar, mini map, crosshair, hints). The game's own Ctrl+F3 toggle does the same thing."
             );
             KeyPick = Config.Bind(
                 "Hotkeys",
@@ -213,6 +220,11 @@ namespace XRays
                         TogglePlayer();
                     }
 
+                    if (Hotkey(KeyHud, blocked))
+                    {
+                        ToggleHud();
+                    }
+
                     if (Hotkey(KeyPick, blocked))
                     {
                         if (ModifierHeld())
@@ -260,6 +272,12 @@ namespace XRays
         {
             Visibility.TogglePlayer();
             Notify(Visibility.PlayerHidden ? "Player hidden" : "Player shown");
+        }
+
+        internal void ToggleHud()
+        {
+            Visibility.ToggleHud();
+            Notify(Visibility.HudHidden ? "HUD hidden" : "HUD shown");
         }
 
         internal void ToggleObjectUnderCursor()

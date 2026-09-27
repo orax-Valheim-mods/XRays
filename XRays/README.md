@@ -7,10 +7,10 @@ etc.
 Two ways to use it:
 
 * **The control panel** (vanilla woodpanel via Jötunn): a checkbox for the
-  terrain, the water, the clouds and your own character, one checkbox per
-  category, loaded-object counters, and two global buttons — **Hide all**
-  (terrain, water, clouds, your own character and every category at once)
-  and **Show all** (back to the normal world).
+  terrain, the water, the clouds, your own character and the HUD, one
+  checkbox per category, loaded-object counters, and two global buttons —
+  **Hide all** (terrain, water, clouds, your own character, the HUD and
+  every category at once) and **Show all** (back to the normal world).
 * **The keyboard hotkeys**: they act directly on the element under the
   cursor.
 
@@ -24,6 +24,7 @@ Two ways to use it:
 | `F10` | Hides / shows the **water** (zones and the sea on the horizon) |
 | `F6` | Hides / shows the **clouds** of the sky |
 | `F4` | Hides / shows **your own character** (body, armor and held item) |
+| `F3` | Hides / shows the **HUD** (bars, hot bar, mini map, crosshair, hints) |
 | `F9` | Hides / shows **the object under the cursor** |
 | `Ctrl` + `F9` | Hides / shows the **whole category** of that object |
 
@@ -48,6 +49,15 @@ Two ways to use it:
   the colliders and the camera stay untouched; the **Creatures** category
   never includes your own character, and the ray cast skips it as well (you
   never pick yourself).
+* **Hide HUD** takes the whole in-game HUD away in one go: health, stamina,
+  eitr and adrenaline bars, hot bar, mini map, crosshair, status effects,
+  build / key hints, ship and mount panels — everything the game itself
+  groups under its HUD root. Chat, notifications, enemy health bars and
+  damage numbers are separate overlays and stay on screen, and so does the
+  pause menu (the game drags it off screen along with the HUD; the mod keeps
+  it in view, otherwise Escape would open an invisible menu). Showing the
+  HUD again also undoes the game's own `Ctrl` + `F3` toggle, so the HUD
+  always comes back exactly where it belongs.
 
 ## Recognized categories
 
@@ -112,6 +122,7 @@ launch, also editable in game through Jötunn's ConfigManager):
 | `Hotkeys` | `Water` | `F10` | Hides / shows the water |
 | `Hotkeys` | `Clouds` | `F6` | Hides / shows the clouds |
 | `Hotkeys` | `Player` | `F4` | Hides / shows your own character (the Creatures category never includes it) |
+| `Hotkeys` | `HUD` | `F3` | Hides / shows the HUD (the game's own `Ctrl` + `F3` does the same) |
 | `Hotkeys` | `Pick` | `F9` | Hides / shows the object under the cursor |
 | `Hotkeys` | `Category modifier` | `LeftControl` | Hold together with `Pick` to act on the whole category |
 | `Selection` | `Max distance` | `100` | Maximum picking distance (meters) |

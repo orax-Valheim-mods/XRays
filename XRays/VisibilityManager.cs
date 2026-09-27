@@ -146,6 +146,34 @@ namespace XRays
 
         public void TogglePlayer() => SetPlayer(!PlayerHidden);
 
+        // ---------------------------------------------------------------- HUD
+
+        /// <summary>
+        /// The whole HUD (health, stamina, hot bar, mini map, crosshair,
+        /// hints, ...) as one piece.
+        /// </summary>
+        public bool HudHidden { get; private set; }
+
+        /// <summary>
+        /// Hides or shows the HUD by deactivating the very object the game
+        /// drags off screen for its own Ctrl+F3 toggle (Hud.m_rootObject).
+        /// Deactivating it instead of using that toggle keeps the pause menu
+        /// on screen (the game moves it along with the HUD) and leaves the
+        /// rest of the HUD code running as usual.
+        /// </summary>
+        public void SetHud(bool hidden)
+        {
+            if (HudHidden == hidden)
+            {
+                return;
+            }
+
+            HudHidden = hidden;
+            ApplyHud();
+        }
+
+        public void ToggleHud() => SetHud(!HudHidden);
+
         // ---------------------------------------------------------------- categories
 
         public bool IsCategoryHidden(string key)
@@ -242,14 +270,15 @@ namespace XRays
             PlayerHidden = false;
             hiddenCategories.Clear();
             individualObjects.Clear();
+            SetHud(false);
             Reconcile();
         }
 
         /// <summary>
         /// Hides everything the panel can hide (the reverse of RestoreAll):
-        /// terrain, water, clouds, your own character and every known
-        /// category. The objects picked one by one are already hidden, they
-        /// need nothing.
+        /// terrain, water, clouds, your own character, the HUD and every
+        /// known category. The objects picked one by one are already hidden,
+        /// they need nothing.
         /// </summary>
         public void HideAll()
         {
@@ -263,11 +292,19 @@ namespace XRays
                 hiddenCategories.Add(category.Key);
             }
 
+            SetHud(true);
             Reconcile();
         }
 
         public void Tick(float deltaTime)
         {
+            if (HudHidden)
+            {
+                // re-asserted every frame: the HUD must never flash back on
+                // screen, whatever the game code runs in between
+                ApplyHud();
+            }
+
             if (!AnyActive)
             {
                 return;
@@ -408,6 +445,75 @@ namespace XRays
         }
 
         // ---------------------------------------------------------------- internals
+
+        /// <summary>
+        /// The threshold the game itself uses to tell the HUD is off screen
+        /// (see Hud.IsVisible).
+        /// </summary>
+        private const float NotVisibleThreshold = 1000f;
+
+        /// <summary>
+        /// Applies the HUD state: the root object deactivated or reactivated,
+        /// plus whatever the game moved off screen with it.
+        /// </summary>
+        private void ApplyHud()
+        {
+            Hud hud = Hud.instance;
+            GameObject root = hud != null ? hud.m_rootObject : null;
+            if (root == null)
+            {
+                return;
+            }
+
+            if (HudHidden)
+            {
+                if (root.activeSelf)
+                {
+                    root.SetActive(false);
+                }
+
+                KeepPauseMenuOnScreen();
+                return;
+            }
+
+            // showing the HUD again also undoes the game's own toggle
+            // (Ctrl + F3): that toggle only drags the root off screen, which
+            // would leave it invisible even though it is active again
+            if (hud.m_userHidden)
+            {
+                hud.m_userHidden = false;
+            }
+
+            if (!root.activeSelf)
+            {
+                root.SetActive(true);
+            }
+
+            if (root.transform.localPosition.x >= NotVisibleThreshold)
+            {
+                root.transform.localPosition = Vector3.zero;
+            }
+        }
+
+        /// <summary>
+        /// The game drags the pause menu off screen along with the HUD (its
+        /// own Ctrl + F3 toggle): the menu would then open out of view, which
+        /// is very confusing when Escape also closes the panel. It is put
+        /// back as soon as it leaves the screen.
+        /// </summary>
+        private static void KeepPauseMenuOnScreen()
+        {
+            Menu menu = Menu.instance;
+            if (menu == null || menu.m_root == null)
+            {
+                return;
+            }
+
+            if (menu.m_root.localPosition.x >= NotVisibleThreshold)
+            {
+                menu.m_root.localPosition = Vector3.zero;
+            }
+        }
 
         /// <summary>
         /// The loaded Heightmaps. The game's static list is preferred (when it
