@@ -220,6 +220,9 @@ namespace XRays
             }
         }
 
+        /// <summary>Every known category: the built-in ones + the ones created on the fly.</summary>
+        public static IEnumerable<Category> All => Registry.Values;
+
         /// <summary>Drops the cached name scan of a category (called when it is toggled).</summary>
         public static void Invalidate(string key)
         {

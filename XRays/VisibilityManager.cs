@@ -220,6 +220,25 @@ namespace XRays
             Reconcile();
         }
 
+        /// <summary>
+        /// Hides everything the panel can hide (the reverse of RestoreAll):
+        /// terrain, water, clouds and every known category. The objects picked
+        /// one by one are already hidden, they need nothing.
+        /// </summary>
+        public void HideAll()
+        {
+            TerrainHidden = true;
+            WaterHidden = true;
+            CloudsHidden = true;
+
+            foreach (Category category in Categories.All)
+            {
+                hiddenCategories.Add(category.Key);
+            }
+
+            Reconcile();
+        }
+
         public void Tick(float deltaTime)
         {
             if (!AnyActive)

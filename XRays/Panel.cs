@@ -384,20 +384,24 @@ namespace XRays
                 categoryRows.Add(row);
             }
 
-            // hidden objects
+            // hidden objects + the two global buttons on its right
             int last = 6 + Categories.BuiltIn.Length;
             objectsText = MakeText(
                 "Hidden objects: 0",
                 LeftMargin,
                 rows[last],
-                260f,
+                230f,
                 30f,
                 14,
                 BodyColor,
                 TextAnchor.MiddleLeft,
                 gui.AveriaSerif
             );
-            Button restoreAll = MakeButton("Show all", RightMargin, rows[last], 170f, 30f);
+
+            Button hideAll = MakeButton("Hide all", RightMargin - 100f, rows[last], 90f, 30f);
+            hideAll.onClick.AddListener(OnHideAll);
+
+            Button restoreAll = MakeButton("Show all", RightMargin, rows[last], 90f, 30f);
             restoreAll.onClick.AddListener(OnRestoreAll);
 
             // help text
@@ -446,6 +450,12 @@ namespace XRays
         private void OnRestoreAll()
         {
             visibility.RestoreAll();
+            Refresh();
+        }
+
+        private void OnHideAll()
+        {
+            visibility.HideAll();
             Refresh();
         }
 

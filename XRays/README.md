@@ -7,7 +7,9 @@ etc.
 Two ways to use it:
 
 * **The control panel** (vanilla woodpanel via Jötunn): one checkbox per
-  category, loaded-object counters, a "Show all" button.
+  category, loaded-object counters, and two global buttons — **Hide all**
+  (terrain, water, clouds and every category at once) and **Show all** (back
+  to the normal world).
 * **The keyboard hotkeys**: they act directly on the element under the
   cursor.
 
