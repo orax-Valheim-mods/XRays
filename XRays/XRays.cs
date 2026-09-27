@@ -126,7 +126,7 @@ namespace XRays
             PanelHeight = Config.Bind(
                 "Display",
                 "Panel height",
-                760f,
+                640f,
                 new ConfigDescription(
                     "Vertical size of the control panel in pixels. The rows scroll under the title when they do not fit in it.",
                     new AcceptableValueRange<float>(360f, 1200f)

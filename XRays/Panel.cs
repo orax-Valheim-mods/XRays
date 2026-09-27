@@ -19,6 +19,14 @@ namespace XRays
             public Text Count;
         }
 
+        /// <summary>One option of the compact world layer line.</summary>
+        private class LayerOption
+        {
+            public Toggle Toggle;
+            public Text Label;
+            public float Width; // toggle, gap and label together
+        }
+
         private const float PanelWidth = 470f;
         private const float LeftMargin = -PanelWidth / 2f + 20f;
         private const float RightMargin = PanelWidth / 2f - 20f;
@@ -41,6 +49,21 @@ namespace XRays
         private const float ScrollbarInset = 6f;
 
         private const float ScrollbarWidth = 10f;
+
+        /// <summary>One compact line of world layer options.</summary>
+        private const float LayerRowHeight = 30f;
+
+        /// <summary>Gap between a toggle and its own label.</summary>
+        private const float LayerLabelGap = 6f;
+
+        /// <summary>Gap between two options of the same line.</summary>
+        private const float LayerItemGap = 14f;
+
+        /// <summary>Width the line of options has to fit in.</summary>
+        private const float LayerLineWidth = RightMargin - LeftMargin;
+
+        /// <summary>Type size of the compact line.</summary>
+        private const int LayerFontSize = 14;
 
         private readonly XRays plugin;
         private readonly VisibilityManager visibility;
@@ -269,8 +292,10 @@ namespace XRays
 
             // pre-compute the panel layout: one single list of options, the
             // world layers first and the categories right after them. Only
-            // the title belongs to the fixed header, the rest scrolls.
-            float[] rows = new float[10 + Categories.BuiltIn.Length];
+            // the title belongs to the fixed header, the rest scrolls. The
+            // rows below the world layers are computed once that block has
+            // measured itself, since it takes one line or two.
+            float[] rows = new float[5 + Categories.BuiltIn.Length];
             rows[0] = Row(44f); // title (header)
             headerHeight = cursor + 16f; // margins of the header, then the viewport
 
@@ -281,20 +306,6 @@ namespace XRays
             // under the cursor: the text wraps over several lines (element,
             // game types, hit, coordinates), so it gets a whole extra line
             rows[1] = Row(96f);
-            rows[2] = Row(30f); // terrain
-            rows[3] = Row(30f); // water
-            rows[4] = Row(30f); // clouds
-            rows[5] = Row(30f); // player
-            rows[6] = Row(30f); // hud
-            for (int i = 0; i < Categories.BuiltIn.Length; i++)
-            {
-                rows[7 + i] = Row(26f);
-            }
-
-            rows[7 + Categories.BuiltIn.Length] = Row(30f); // hidden objects
-            rows[8 + Categories.BuiltIn.Length] = Row(34f); // global buttons
-            rows[9 + Categories.BuiltIn.Length] = Row(100f); // help text (5 lines)
-            contentHeight = cursor + 16f;
 
             builtHeight = Mathf.Clamp(plugin.PanelHeight.Value, MinPanelHeight, MaxPanelHeight);
 
@@ -349,123 +360,30 @@ namespace XRays
                 gui.AveriaSerif
             );
 
-            // world layers and own display:
-            // terrain / water / clouds / player / hud
-            terrainToggle = MakeToggle(
-                LeftMargin,
-                rows[2],
-                visibility.TerrainHidden,
-                v =>
-                {
-                    visibility.SetTerrain(v);
-                    Refresh();
-                }
-            );
-            MakeText(
-                "Terrain",
-                LeftMargin + 36f,
-                rows[2],
-                300f,
-                26f,
-                15,
-                BodyColor,
-                TextAnchor.MiddleLeft,
-                gui.AveriaSerif
-            );
+            // world layers and own display: the five of them share one
+            // compact line, and drop on a second one when their labels do
+            // not all fit in the width of the panel
+            cursor = MakeLayerOptions(gui, cursor);
 
-            waterToggle = MakeToggle(
-                LeftMargin,
-                rows[3],
-                visibility.WaterHidden,
-                v =>
-                {
-                    visibility.SetWater(v);
-                    Refresh();
-                }
-            );
-            MakeText(
-                "Water",
-                LeftMargin + 36f,
-                rows[3],
-                300f,
-                26f,
-                15,
-                BodyColor,
-                TextAnchor.MiddleLeft,
-                gui.AveriaSerif
-            );
+            // the rows below that block, now that its height is known
+            for (int i = 0; i < Categories.BuiltIn.Length; i++)
+            {
+                rows[2 + i] = Row(26f);
+            }
 
-            cloudsToggle = MakeToggle(
-                LeftMargin,
-                rows[4],
-                visibility.CloudsHidden,
-                v =>
-                {
-                    visibility.SetClouds(v);
-                    Refresh();
-                }
-            );
-            MakeText(
-                "Clouds",
-                LeftMargin + 36f,
-                rows[4],
-                300f,
-                26f,
-                15,
-                BodyColor,
-                TextAnchor.MiddleLeft,
-                gui.AveriaSerif
-            );
+            rows[2 + Categories.BuiltIn.Length] = Row(30f); // hidden objects
+            rows[3 + Categories.BuiltIn.Length] = Row(34f); // global buttons
+            rows[4 + Categories.BuiltIn.Length] = Row(100f); // help text (5 lines)
+            contentHeight = cursor + 16f;
 
-            playerToggle = MakeToggle(
-                LeftMargin,
-                rows[5],
-                visibility.PlayerHidden,
-                v =>
-                {
-                    visibility.SetPlayer(v);
-                    Refresh();
-                }
-            );
-            MakeText(
-                "Player",
-                LeftMargin + 36f,
-                rows[5],
-                300f,
-                26f,
-                15,
-                BodyColor,
-                TextAnchor.MiddleLeft,
-                gui.AveriaSerif
-            );
-
-            hudToggle = MakeToggle(
-                LeftMargin,
-                rows[6],
-                visibility.HudHidden,
-                v =>
-                {
-                    visibility.SetHud(v);
-                    Refresh();
-                }
-            );
-            MakeText(
-                "HUD",
-                LeftMargin + 36f,
-                rows[6],
-                300f,
-                26f,
-                15,
-                BodyColor,
-                TextAnchor.MiddleLeft,
-                gui.AveriaSerif
-            );
+            // the rows are known: the scrolling content gets its height
+            ApplyHeight(builtHeight);
 
             // the categories simply continue the list of options
             for (int i = 0; i < Categories.BuiltIn.Length; i++)
             {
                 Category category = Categories.BuiltIn[i];
-                float y = rows[7 + i];
+                float y = rows[2 + i];
 
                 CategoryRow row = new CategoryRow
                 {
@@ -504,7 +422,7 @@ namespace XRays
             }
 
             // the hidden objects counter, then the three global buttons
-            int counter = 7 + Categories.BuiltIn.Length;
+            int counter = 2 + Categories.BuiltIn.Length;
             int actions = counter + 1;
             int helpRow = actions + 1;
 
@@ -546,6 +464,153 @@ namespace XRays
 
             container = null;
             return true;
+        }
+
+        /// <summary>
+        /// The five world layer options (terrain, water, clouds, player,
+        /// hud): they share one compact line and drop on a second one when
+        /// their labels do not all fit in the width of the panel. Returns
+        /// the cursor, moved past the block.
+        /// </summary>
+        private float MakeLayerOptions(GUIManager gui, float top)
+        {
+            // created with their label, measured, then placed
+            LayerOption[] options =
+            {
+                MakeLayerOption(
+                    gui,
+                    "Terrain",
+                    visibility.TerrainHidden,
+                    v =>
+                    {
+                        visibility.SetTerrain(v);
+                        Refresh();
+                    }
+                ),
+                MakeLayerOption(
+                    gui,
+                    "Water",
+                    visibility.WaterHidden,
+                    v =>
+                    {
+                        visibility.SetWater(v);
+                        Refresh();
+                    }
+                ),
+                MakeLayerOption(
+                    gui,
+                    "Clouds",
+                    visibility.CloudsHidden,
+                    v =>
+                    {
+                        visibility.SetClouds(v);
+                        Refresh();
+                    }
+                ),
+                MakeLayerOption(
+                    gui,
+                    "Player",
+                    visibility.PlayerHidden,
+                    v =>
+                    {
+                        visibility.SetPlayer(v);
+                        Refresh();
+                    }
+                ),
+                MakeLayerOption(
+                    gui,
+                    "HUD",
+                    visibility.HudHidden,
+                    v =>
+                    {
+                        visibility.SetHud(v);
+                        Refresh();
+                    }
+                )
+            };
+
+            // the light refresh keeps its hands on those five toggles
+            terrainToggle = options[0].Toggle;
+            waterToggle = options[1].Toggle;
+            cloudsToggle = options[2].Toggle;
+            playerToggle = options[3].Toggle;
+            hudToggle = options[4].Toggle;
+
+            float total = 0f;
+            for (int i = 0; i < options.Length; i++)
+            {
+                total += options[i].Width + (i > 0 ? LayerItemGap : 0f);
+            }
+
+            // one line when everything fits, otherwise half of the options
+            // per line (three then two with the five of them)
+            int firstLine = total <= LayerLineWidth ? options.Length : (options.Length + 1) / 2;
+
+            float line = -(top + LayerRowHeight / 2f);
+            PlaceLayers(options, 0, firstLine, line);
+            top += LayerRowHeight;
+
+            if (firstLine < options.Length)
+            {
+                line = -(top + LayerRowHeight / 2f);
+                PlaceLayers(options, firstLine, options.Length - firstLine, line);
+                top += LayerRowHeight;
+            }
+
+            return top;
+        }
+
+        /// <summary>One toggle and its label, measured for the flow layout.</summary>
+        private LayerOption MakeLayerOption(
+            GUIManager gui,
+            string label,
+            bool shown,
+            System.Action<bool> onChanged
+        )
+        {
+            LayerOption option = new LayerOption
+            {
+                Toggle = MakeToggle(LeftMargin, 0f, shown, onChanged),
+                Label = MakeText(
+                    label,
+                    LeftMargin,
+                    0f,
+                    300f,
+                    26f,
+                    LayerFontSize,
+                    BodyColor,
+                    TextAnchor.MiddleLeft,
+                    gui.AveriaSerif
+                )
+            };
+
+            // measured without wrapping, so the box of the label ends where
+            // its words do instead of covering the next option
+            HorizontalWrapMode overflow = option.Label.horizontalOverflow;
+            option.Label.horizontalOverflow = HorizontalWrapMode.Overflow;
+            float words = option.Label.preferredWidth;
+            option.Label.horizontalOverflow = overflow;
+            option.Label.rectTransform.sizeDelta = new Vector2(words + 6f, 26f);
+
+            option.Width = ToggleSize + LayerLabelGap + words;
+            return option;
+        }
+
+        /// <summary>Places a run of options from left to right on one line.</summary>
+        private static void PlaceLayers(LayerOption[] options, int from, int count, float y)
+        {
+            float x = LeftMargin;
+            for (int i = from; i < from + count; i++)
+            {
+                LayerOption option = options[i];
+                RectTransform toggleRect = (RectTransform)option.Toggle.transform;
+                toggleRect.anchoredPosition = new Vector2(x, y);
+                option.Label.rectTransform.anchoredPosition = new Vector2(
+                    x + ToggleSize + LayerLabelGap,
+                    y
+                );
+                x += option.Width + LayerItemGap;
+            }
         }
 
         /// <summary>
