@@ -17,7 +17,11 @@ Two ways to use it:
   (back to the normal world). The title and the **Close** button stay on top
   of the panel while the list scrolls under them, with the mouse wheel or
   the scrollbar on the right; the height of the panel itself is the
-  `Display` → `Panel height` option.
+  `Display` → `Panel height` option. The line above those buttons sums the
+  panel up: `Hidden objects: N` is the number of object roots currently
+  invisible — ticked categories, objects picked one by one, **Hide all** —
+  while `Other: M` counts what is hidden without a row of its own in the
+  list (the objects picked with `F9` and the categories created on the fly).
 * **The keyboard hotkeys**: they act directly on the element under the
   cursor.
 
@@ -38,7 +42,9 @@ Two ways to use it:
 
 * Picking is a ray cast from the camera (screen center when the pointer is
   locked, otherwise the real mouse position), up to a maximum distance of
-  100 m (configurable).
+  100 m (configurable). The pick hotkeys are ignored while the panel is
+  open — the pointer belongs to the interface then — so pick with the panel
+  closed and the counters show the result when it reopens.
 * When the terrain is already hidden, picking "sees" through it and targets
   the object behind it.
 * The **Under the cursor** section of the panel shows four lines: the element

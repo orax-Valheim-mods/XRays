@@ -243,11 +243,13 @@ namespace XRays
                     : (visibility.AnyOptionChecked ? "Reveal" : "Hide")
             );
 
+            // the summary line: what is invisible right now, then what is
+            // hidden without a row of its own in the list
             objectsText.text =
                 "Hidden objects: "
-                + visibility.IndividualCount
+                + visibility.HiddenRootCount
                 + "    Other: "
-                + visibility.HiddenNameCategoryCount;
+                + visibility.OffListCount;
 
             cursorText.text = PickService.Describe(plugin.PickDistance.Value, visibility);
         }
@@ -427,7 +429,7 @@ namespace XRays
             int helpRow = actions + 1;
 
             objectsText = MakeText(
-                "Hidden objects: 0",
+                "Hidden objects: 0    Other: 0",
                 LeftMargin,
                 rows[counter],
                 230f,

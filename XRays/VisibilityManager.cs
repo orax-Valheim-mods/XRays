@@ -64,7 +64,22 @@ namespace XRays
             || hiddenCategories.Count > 0
             || individualObjects.Count > 0;
 
+        /// <summary>
+        /// Object roots currently invisible: the hidden categories, the
+        /// objects picked one by one and whatever "Hide all" took away. The
+        /// world layers (terrain, water, clouds, own character) are not
+        /// objects, they are not counted here.
+        /// </summary>
+        public int HiddenRootCount => hiddenRoots.Count;
+
         public int IndividualCount => individualObjects.Count;
+
+        /// <summary>
+        /// What is hidden without a row of its own in the panel: the objects
+        /// picked one by one and the categories created on the fly from an
+        /// object name (neither of them is listed).
+        /// </summary>
+        public int OffListCount => individualObjects.Count + HiddenNameCategoryCount;
 
         public int HiddenNameCategoryCount
         {
