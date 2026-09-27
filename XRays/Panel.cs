@@ -311,15 +311,17 @@ namespace XRays
             // measured itself, since it takes one line or two.
             float[] rows = new float[6 + Categories.BuiltIn.Length];
             rows[0] = Row(44f); // title (header)
-            headerHeight = cursor + 16f; // margins of the header, then the viewport
+            headerHeight = cursor + 8f; // margins of the header, then the viewport
 
             // the scrolling content has its own top margin: the height of
             // the panel is an option, so it is not part of this list
-            cursor = 14f;
+            cursor = 6f;
 
             // under the cursor: the text wraps over several lines (element,
-            // game types, hit, coordinates), so it gets a whole extra line
-            rows[1] = Row(96f);
+            // game types, hit, coordinates), so it gets a whole block. The
+            // block is centred on its text: four lines is what it usually
+            // holds, six is the longest it can reach.
+            rows[1] = Row(80f);
 
             builtHeight = Mathf.Clamp(plugin.PanelHeight.Value, MinPanelHeight, MaxPanelHeight);
 
@@ -367,16 +369,20 @@ namespace XRays
                 LeftMargin,
                 rows[1],
                 430f,
-                96f,
+                80f,
                 13,
                 BodyColor,
                 TextAnchor.MiddleLeft,
                 gui.AveriaSerif
             );
 
-            // world layers and own display: the five of them share one
+            // a little air between that block and the options: it is also
+            // where the longest descriptions spill when they run over their
+            // own block, so nothing ever lands on the first toggle.
+            // World layers and own display: the five of them share one
             // compact line, and drop on a second one when their labels do
             // not all fit in the width of the panel
+            cursor += 10f;
             cursor = MakeLayerOptions(gui, cursor);
 
             // the rows below that block, now that its height is known
