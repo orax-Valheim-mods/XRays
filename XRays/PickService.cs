@@ -25,6 +25,12 @@ namespace XRays
 
         /// <summary>Distance between the camera and the picked element, in meters.</summary>
         public float Distance;
+
+        /// <summary>
+        /// The game component type that matched the category (TreeBase, Pickable,
+        /// Heightmap, ...). Null for categories created "by name".
+        /// </summary>
+        public Type MatchedType;
     }
 
     /// <summary>
@@ -120,8 +126,8 @@ namespace XRays
 
         /// <summary>
         /// Detailed description of the picked element, used by the panel:
-        /// name, category, hidden state, then coordinates and distance on a
-        /// second line.
+        /// name, category, hidden state, then the game types used by that
+        /// category, then coordinates and distance.
         /// </summary>
         public static string Describe(float maxDistance, VisibilityManager visibility)
         {
@@ -157,7 +163,50 @@ namespace XRays
                 line += "  ·  hidden";
             }
 
-            return line + "\n" + Details(pick);
+            return line + "\n" + TypesLine(pick) + "\n" + Details(pick);
+        }
+
+        /// <summary>
+        /// Debug line: the game component types backing the category, plus the
+        /// one that actually matched the picked object.
+        /// </summary>
+        private static string TypesLine(PickResult pick)
+        {
+            if (pick.Kind == PickKind.Terrain)
+            {
+                return "Game type: Heightmap";
+            }
+
+            if (pick.Kind == PickKind.Water)
+            {
+                return "Game type: WaterVolume";
+            }
+
+            Category category = pick.Category;
+            if (category == null)
+            {
+                return "Game type: none";
+            }
+
+            if (category.IsNameCategory)
+            {
+                return "Game type: none  ·  category created by name";
+            }
+
+            string list = "none";
+            if (category.Types != null && category.Types.Length > 0)
+            {
+                string[] names = new string[category.Types.Length];
+                for (int i = 0; i < category.Types.Length; i++)
+                {
+                    names[i] = category.Types[i].Name;
+                }
+
+                list = string.Join(", ", names);
+            }
+
+            string matched = pick.MatchedType != null ? pick.MatchedType.Name : "?";
+            return "Game types: " + list + "  ·  match: " + matched;
         }
 
         /// <summary>Coordinates + distance line (invariant culture, English unit).</summary>
@@ -185,12 +234,12 @@ namespace XRays
             {
                 if (current.GetComponent<Heightmap>() != null)
                 {
-                    return new PickResult { Kind = PickKind.Terrain, Root = current.gameObject, Name = "Terrain" };
+                    return new PickResult { Kind = PickKind.Terrain, Root = current.gameObject, Name = "Terrain", MatchedType = typeof(Heightmap) };
                 }
 
                 if (current.GetComponent<WaterVolume>() != null)
                 {
-                    return new PickResult { Kind = PickKind.Water, Root = current.gameObject, Name = "Water" };
+                    return new PickResult { Kind = PickKind.Water, Root = current.gameObject, Name = "Water", MatchedType = typeof(WaterVolume) };
                 }
 
                 foreach (Category category in Categories.BuiltIn)
@@ -209,7 +258,8 @@ namespace XRays
                                 Kind = PickKind.Object,
                                 Category = category,
                                 Root = current.gameObject,
-                                Name = current.name
+                                Name = current.name,
+                                MatchedType = type
                             };
                         }
                     }
