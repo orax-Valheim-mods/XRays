@@ -8,9 +8,12 @@ Two ways to use it:
 
 * **The control panel** (vanilla woodpanel via Jötunn): one single list of
   options — the terrain, the water, the clouds, your own character, the HUD,
-  then a checkbox per category — with loaded-object counters and two global
-  buttons, **Hide all** (everything in that list at once) and **Show all**
-  (back to the normal world).
+  then a checkbox per category — with loaded-object counters and three global
+  buttons: **Reveal** (shows everything the checked options were hiding, the
+  next press turns it into **Restore** and brings that exact setup back — with
+  nothing checked the first press checks every option instead), **Hide all**
+  (everything in that list at once) and **Show all** (back to the normal
+  world).
 * **The keyboard hotkeys**: they act directly on the element under the
   cursor.
 
@@ -20,6 +23,7 @@ Two ways to use it:
 | --- | --- |
 | `F8` | Opens / closes the XRays panel |
 | `Escape` | Closes the panel while it is on screen (the game pause menu stays closed) |
+| `F2` | Shows every checked option at once; the next press brings that exact setup back |
 | `F7` | Hides / shows the **terrain** |
 | `F10` | Hides / shows the **water** (zones and the sea on the horizon) |
 | `F6` | Hides / shows the **clouds** of the sky |
@@ -44,6 +48,11 @@ Two ways to use it:
   aimed point for the terrain / water) and the distance in meters.
 * Colliders are never touched: the world stays playable, only renderers are
   disabled (their original state is memorised and restored).
+* The reveal / restore toggle (its button and its hotkey) only deals with the
+  options of the list: the objects hidden one by one with `F9` and the
+  categories only known under their name keep their state, and anything ticked
+  by hand while the reveal is on is kept when the setup comes back. **Hide
+  all** forgets that setup, it replaces it with "everything".
 * **Player** takes your own character out of the picture — body, armor
   and held item — so it never blocks the view. It only disables renderers,
   the colliders and the camera stay untouched; the **Creatures** category

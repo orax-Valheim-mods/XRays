@@ -292,8 +292,139 @@ namespace XRays
                 hiddenCategories.Add(category.Key);
             }
 
+            // a global command replaces the setup remembered by the reveal
+            // toggle, keeping it would only restore "everything" anyway
+            revealedFrom = null;
+
             SetHud(true);
             Reconcile();
+        }
+
+        // ---------------------------------------------------------------- reveal toggle
+
+        /// <summary>How many of the options are plain world / own display flags.</summary>
+        private const int WorldOptionCount = 5;
+
+        /// <summary>
+        /// The options checked when the reveal started (the flags then one
+        /// slot per category, in panel order), null when there is nothing to
+        /// bring back.
+        /// </summary>
+        private bool[] revealedFrom;
+
+        /// <summary>Is a reveal waiting to be undone by the next call?</summary>
+        public bool IsRevealing => revealedFrom != null;
+
+        /// <summary>Is at least one option of the panel list checked?</summary>
+        public bool AnyOptionChecked
+        {
+            get
+            {
+                if (TerrainHidden || WaterHidden || CloudsHidden || PlayerHidden || HudHidden)
+                {
+                    return true;
+                }
+
+                foreach (Category category in Categories.BuiltIn)
+                {
+                    if (hiddenCategories.Contains(category.Key))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Shows everything the checked options were hiding, then brings that
+        /// exact setup back on the next call. Only the options of the panel
+        /// take part: the objects hidden one by one and the categories only
+        /// known under their name are left alone. With nothing checked, the
+        /// call checks every option instead, so it is never a no-op.
+        /// </summary>
+        public void ToggleChecked()
+        {
+            bool[] current = CaptureOptions();
+
+            if (revealedFrom == null)
+            {
+                bool anything = AnyOptionChecked;
+                revealedFrom = current;
+                ApplyOptions(Filled(current, !anything));
+                return;
+            }
+
+            // the remembered setup plus whatever was ticked while it was
+            // shown: a choice made by hand must never be dropped
+            bool[] target = (bool[])revealedFrom.Clone();
+            for (int i = 0; i < target.Length; i++)
+            {
+                target[i] = target[i] || current[i];
+            }
+
+            revealedFrom = null;
+            ApplyOptions(target);
+        }
+
+        /// <summary>Current state of every panel option, in panel order.</summary>
+        private bool[] CaptureOptions()
+        {
+            bool[] state = new bool[WorldOptionCount + Categories.BuiltIn.Length];
+            state[0] = TerrainHidden;
+            state[1] = WaterHidden;
+            state[2] = CloudsHidden;
+            state[3] = PlayerHidden;
+            state[4] = HudHidden;
+
+            for (int i = 0; i < Categories.BuiltIn.Length; i++)
+            {
+                state[WorldOptionCount + i] = IsCategoryHidden(Categories.BuiltIn[i].Key);
+            }
+
+            return state;
+        }
+
+        /// <summary>Puts the panel options in the given state, in one pass.</summary>
+        private void ApplyOptions(bool[] state)
+        {
+            TerrainHidden = state[0];
+            WaterHidden = state[1];
+            CloudsHidden = state[2];
+            PlayerHidden = state[3];
+
+            if (HudHidden != state[4])
+            {
+                HudHidden = state[4];
+                ApplyHud();
+            }
+
+            for (int i = 0; i < Categories.BuiltIn.Length; i++)
+            {
+                string key = Categories.BuiltIn[i].Key;
+                if (state[WorldOptionCount + i])
+                {
+                    hiddenCategories.Add(key);
+                }
+                else
+                {
+                    hiddenCategories.Remove(key);
+                }
+            }
+
+            Reconcile();
+        }
+
+        private static bool[] Filled(bool[] from, bool value)
+        {
+            bool[] state = new bool[from.Length];
+            for (int i = 0; i < state.Length; i++)
+            {
+                state[i] = value;
+            }
+
+            return state;
         }
 
         public void Tick(float deltaTime)

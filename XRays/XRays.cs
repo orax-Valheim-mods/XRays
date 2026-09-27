@@ -30,6 +30,7 @@ namespace XRays
         internal ConfigEntry<KeyCode> KeyPlayer;
         internal ConfigEntry<KeyCode> KeyHud;
         internal ConfigEntry<KeyCode> KeyPick;
+        internal ConfigEntry<KeyCode> KeyReveal;
         internal ConfigEntry<KeyCode> ModifierKey;
 
         internal ConfigEntry<float> PickDistance;
@@ -101,6 +102,12 @@ namespace XRays
                 "Pick",
                 KeyCode.F9,
                 "Hide / show the object under the cursor."
+            );
+            KeyReveal = Config.Bind(
+                "Hotkeys",
+                "Reveal",
+                KeyCode.F2,
+                "Show every checked option at once, then bring that setup back on the next press. With nothing checked it checks them all."
             );
             ModifierKey = Config.Bind(
                 "Hotkeys",
@@ -225,6 +232,11 @@ namespace XRays
                         ToggleHud();
                     }
 
+                    if (Hotkey(KeyReveal, blocked))
+                    {
+                        ToggleReveal();
+                    }
+
                     if (Hotkey(KeyPick, blocked))
                     {
                         if (ModifierHeld())
@@ -278,6 +290,23 @@ namespace XRays
         {
             Visibility.ToggleHud();
             Notify(Visibility.HudHidden ? "HUD hidden" : "HUD shown");
+        }
+
+        internal void ToggleReveal()
+        {
+            bool wasRevealing = Visibility.IsRevealing;
+            bool wasChecked = Visibility.AnyOptionChecked;
+
+            Visibility.ToggleChecked();
+
+            if (wasRevealing)
+            {
+                Notify("Options restored");
+            }
+            else
+            {
+                Notify(wasChecked ? "All options shown" : "All options hidden");
+            }
         }
 
         internal void ToggleObjectUnderCursor()

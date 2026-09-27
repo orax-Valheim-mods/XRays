@@ -36,6 +36,7 @@ namespace XRays
         private Toggle cloudsToggle;
         private Toggle playerToggle;
         private Toggle hudToggle;
+        private Button revealButton;
         private Text cursorText;
         private Text objectsText;
         private float refreshTimer;
@@ -110,6 +111,7 @@ namespace XRays
             cloudsToggle = null;
             playerToggle = null;
             hudToggle = null;
+            revealButton = null;
             cursorText = null;
             objectsText = null;
             categoryRows.Clear();
@@ -155,6 +157,14 @@ namespace XRays
             {
                 row.Toggle.SetIsOnWithoutNotify(visibility.IsCategoryHidden(row.Category.Key));
             }
+
+            // the global button says what the next press will do
+            SetButtonLabel(
+                revealButton,
+                visibility.IsRevealing
+                    ? "Restore"
+                    : (visibility.AnyOptionChecked ? "Reveal" : "Hide")
+            );
 
             objectsText.text =
                 "Hidden objects: "
@@ -205,7 +215,7 @@ namespace XRays
 
             // pre-compute the panel layout: one single list of options, the
             // world layers first and the categories right after them
-            float[] rows = new float[9 + Categories.BuiltIn.Length];
+            float[] rows = new float[10 + Categories.BuiltIn.Length];
             rows[0] = Row(44f); // title
 
             // under the cursor: the text wraps over several lines (element,
@@ -221,8 +231,9 @@ namespace XRays
                 rows[7 + i] = Row(26f);
             }
 
-            rows[7 + Categories.BuiltIn.Length] = Row(34f); // hidden objects
-            rows[8 + Categories.BuiltIn.Length] = Row(82f); // help text (4 lines)
+            rows[7 + Categories.BuiltIn.Length] = Row(30f); // hidden objects
+            rows[8 + Categories.BuiltIn.Length] = Row(34f); // global buttons
+            rows[9 + Categories.BuiltIn.Length] = Row(100f); // help text (5 lines)
             float panelHeight = cursor + 16f;
 
             root = gui.CreateWoodpanel(
@@ -425,12 +436,15 @@ namespace XRays
                 categoryRows.Add(row);
             }
 
-            // hidden objects + the two global buttons on its right
-            int last = 7 + Categories.BuiltIn.Length;
+            // the hidden objects counter, then the three global buttons
+            int counter = 7 + Categories.BuiltIn.Length;
+            int actions = counter + 1;
+            int helpRow = actions + 1;
+
             objectsText = MakeText(
                 "Hidden objects: 0",
                 LeftMargin,
-                rows[last],
+                rows[counter],
                 230f,
                 30f,
                 14,
@@ -439,10 +453,14 @@ namespace XRays
                 gui.AveriaSerif
             );
 
-            Button hideAll = MakeButton("Hide all", RightMargin - 100f, rows[last], 90f, 30f);
+            // left to right: the reveal toggle, then the two global buttons
+            revealButton = MakeButton("Reveal", RightMargin - 200f, rows[actions], 90f, 30f);
+            revealButton.onClick.AddListener(OnToggleReveal);
+
+            Button hideAll = MakeButton("Hide all", RightMargin - 100f, rows[actions], 90f, 30f);
             hideAll.onClick.AddListener(OnHideAll);
 
-            Button restoreAll = MakeButton("Show all", RightMargin, rows[last], 90f, 30f);
+            Button restoreAll = MakeButton("Show all", RightMargin, rows[actions], 90f, 30f);
             restoreAll.onClick.AddListener(OnRestoreAll);
 
             // help text
@@ -450,9 +468,9 @@ namespace XRays
             MakeText(
                 help,
                 LeftMargin,
-                rows[last + 1],
+                rows[helpRow],
                 430f,
-                80f,
+                100f,
                 13,
                 BodyColor,
                 TextAnchor.MiddleLeft,
@@ -478,6 +496,8 @@ namespace XRays
                 + " : clouds\n"
                 + XRays.Instance.KeyPlayer.Value
                 + " : player   ·   "
+                + XRays.Instance.KeyReveal.Value
+                + " : reveal / restore\n"
                 + XRays.Instance.KeyPick.Value
                 + " : hide object under cursor\n"
                 + XRays.Instance.ModifierKey.Value
@@ -496,6 +516,22 @@ namespace XRays
         {
             visibility.RestoreAll();
             Refresh();
+        }
+
+        private void OnToggleReveal()
+        {
+            visibility.ToggleChecked();
+            Refresh();
+        }
+
+        /// <summary>Puts a new caption on an existing button.</summary>
+        private static void SetButtonLabel(Button button, string label)
+        {
+            Text text = button != null ? button.GetComponentInChildren<Text>(true) : null;
+            if (text != null && text.text != label)
+            {
+                text.text = label;
+            }
         }
 
         private void OnHideAll()
