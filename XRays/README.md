@@ -62,6 +62,12 @@ well: `root` also matches `grassroot`, the object the game builds to hold
 every clutter patch, so hiding the Trees would have hidden the whole grass,
 the bushes and the isolated plants with the trees.
 
+**Rocks / ore** follows the same pattern: the ore veins carry `MineRock5` /
+`MineRock`, while a meadow boulder (`Rock_3`, `Rock_4`, `rock4_forest`, ...)
+only carries a `Destructible` and `HugeStone1` / `rockformation1` no component
+the mod knows at all — so the category also matches `rock`, `boulder` and
+`stone` in the object name.
+
 Any object that does not belong to those groups automatically creates a
 "name" category (every object sharing the same name).
 

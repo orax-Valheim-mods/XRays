@@ -119,7 +119,9 @@ namespace XRays
             {
                 Key = "rocks",
                 Label = "Rocks / ore",
-                Types = new[] { typeof(MineRock5), typeof(MineRock) }
+                Types = new[] { typeof(MineRock5), typeof(MineRock) },
+                // a plain boulder only carries a Destructible
+                NameContains = new[] { "rock", "boulder", "stone" }
             },
             new Category
             {
