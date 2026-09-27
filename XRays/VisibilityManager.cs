@@ -110,6 +110,7 @@ namespace XRays
             }
 
             Categories.Register(category);
+            Categories.Invalidate(category.Key);
             int count = Categories.CollectRoots(category).Count;
 
             if (hidden)

@@ -28,7 +28,9 @@ Two ways to use it:
 * The **Under the cursor** section of the panel shows three lines: the element
   name, its category and whether it is hidden; the game component types
   backing that category (debug info, e.g. `Game types: TreeBase, TreeLog  ·
-  match: TreeBase`); then its world coordinates (`Pos (x, y, z)` for an
+  match: TreeBase`, `+ names` when the category also matches object names and
+  `match: name ("FirTree_small")` when that name rule did match); then its
+  world coordinates (`Pos (x, y, z)` for an
   object, `Hit (x, y, z)` for the aimed point on the terrain / water) and the
   distance in meters.
 * Colliders are never touched: the world stays playable, only renderers are
@@ -38,6 +40,13 @@ Two ways to use it:
 
 Trees · Rocks / ore · Pickable resources · Build pieces · Creatures ·
 Ground items · Crops · Spawners · Grass / vegetation.
+
+A category is normally backed by a game component (`TreeBase` / `TreeLog` for
+Trees, `WearNTear` / `Piece` for Build pieces, ...). The **Trees** category
+also matches object names — `tree`, `birch`, `oak`, `stump` (case
+insensitive) — because the small decorative trees, the stubs and the old logs
+only carry a `Destructible`: without that name match they would never be
+hidden with the rest of the forest.
 
 Any object that does not belong to those groups automatically creates a
 "name" category (every object sharing the same name).
@@ -80,6 +89,7 @@ current target again. Handy to find which game types back a given prefab:
 
 ```
 [Info : XRays] Under the cursor: Birch1  ·  Category: Trees  ·  hidden  |  Game types: TreeBase, TreeLog  ·  match: TreeBase  |  Pos (1234.5, 67.8, -910.2)  ·  42.3 m
+[Info : XRays] Under the cursor: FirTree_small(Clone)  ·  Category: Trees  |  Game types: TreeBase, TreeLog + names  ·  match: name ("FirTree_small(Clone)")  |  Pos (199.7, 36.5, -549.0)  ·  8.6 m
 ```
 
 ## Development

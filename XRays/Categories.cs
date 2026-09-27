@@ -16,12 +16,61 @@ namespace XRays
         public string Key;
         public string Label;
         public Type[] Types;
+
+        /// <summary>
+        /// Case-insensitive substrings matched against the object name. They
+        /// catch the objects that carry no known game component: the small
+        /// decorative trees, the stubs and the old logs for example only have a
+        /// "Destructible", so they would never be found through their type.
+        /// </summary>
+        public string[] NameContains;
+
         public bool SkipLocalPlayer;
 
         public bool IsNameCategory =>
             Key != null && Key.StartsWith(NameKeyPrefix, StringComparison.Ordinal);
 
         public string Name => IsNameCategory ? Key.Substring(NameKeyPrefix.Length) : Label;
+
+        /// <summary>Does the category need an object-name scan to list its objects?</summary>
+        public bool HasNameMatch =>
+            IsNameCategory || (NameContains != null && NameContains.Length > 0);
+
+        /// <summary>
+        /// Does that object belong to the category according to its name?
+        /// Exact match for the categories created "by name", substring match
+        /// for the built-in ones.
+        /// </summary>
+        public bool MatchesName(string objectName)
+        {
+            if (string.IsNullOrEmpty(objectName))
+            {
+                return false;
+            }
+
+            if (IsNameCategory)
+            {
+                return string.Equals(objectName, Name, StringComparison.Ordinal);
+            }
+
+            if (NameContains == null)
+            {
+                return false;
+            }
+
+            foreach (string pattern in NameContains)
+            {
+                if (
+                    !string.IsNullOrEmpty(pattern)
+                    && objectName.IndexOf(pattern, StringComparison.OrdinalIgnoreCase) >= 0
+                )
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         public static Category ForName(string objectName)
         {
@@ -45,7 +94,9 @@ namespace XRays
             {
                 Key = "trees",
                 Label = "Trees",
-                Types = new[] { typeof(TreeBase), typeof(TreeLog) }
+                Types = new[] { typeof(TreeBase), typeof(TreeLog) },
+                // small trees, stubs and old logs have no TreeBase / TreeLog
+                NameContains = new[] { "tree", "birch", "oak", "stump" }
             },
             new Category
             {
@@ -101,6 +152,21 @@ namespace XRays
         private static readonly Dictionary<string, Category> Registry =
             new Dictionary<string, Category>();
 
+        /// <summary>
+        /// A name match needs a scan of every loaded object, which is far too
+        /// expensive to run on each refresh: the result is kept for a moment.
+        /// </summary>
+        private const float NameScanDuration = 2f;
+
+        private class NameScan
+        {
+            public float Time;
+            public readonly List<GameObject> Roots = new List<GameObject>();
+        }
+
+        private static readonly Dictionary<string, NameScan> NameScans =
+            new Dictionary<string, NameScan>();
+
         static Categories()
         {
             foreach (Category category in BuiltIn)
@@ -122,6 +188,15 @@ namespace XRays
             }
         }
 
+        /// <summary>Drops the cached name scan of a category (called when it is toggled).</summary>
+        public static void Invalidate(string key)
+        {
+            if (!string.IsNullOrEmpty(key))
+            {
+                NameScans.Remove(key);
+            }
+        }
+
         /// <summary>
         /// Lists the currently loaded objects belonging to the category.
         /// Every returned "root" is the GameObject below which all renderers
@@ -137,35 +212,39 @@ namespace XRays
                 return roots;
             }
 
-            // "Name" category: simply compare GameObject names
-            if (category.IsNameCategory)
-            {
-                string wanted = category.Name;
-                foreach (
-                    UnityEngine.Object obj in UnityEngine.Object.FindObjectsByType(
-                        typeof(Transform),
-                        FindObjectsSortMode.None
-                    )
-                )
-                {
-                    Transform t = obj as Transform;
-                    if (t == null || t.name != wanted)
-                    {
-                        continue;
-                    }
+            AddTypedRoots(category, roots, seen);
 
-                    if (seen.Add(t.gameObject.GetInstanceID()))
+            if (category.HasNameMatch)
+            {
+                foreach (GameObject go in NameScanOf(category))
+                {
+                    if (go != null && seen.Add(go.GetInstanceID()))
                     {
-                        roots.Add(t.gameObject);
+                        roots.Add(go);
                     }
                 }
-
-                return roots;
             }
 
+            return roots;
+        }
+
+        public static int Count(Category category)
+        {
+            return CollectRoots(category).Count;
+        }
+
+        // ---------------------------------------------------------------- internals
+
+        /// <summary>The objects holding one of the game components of the category.</summary>
+        private static void AddTypedRoots(
+            Category category,
+            List<GameObject> roots,
+            HashSet<int> seen
+        )
+        {
             if (category.Types == null)
             {
-                return roots;
+                return;
             }
 
             foreach (Type type in category.Types)
@@ -200,13 +279,70 @@ namespace XRays
                     }
                 }
             }
-
-            return roots;
         }
 
-        public static int Count(Category category)
+        /// <summary>
+        /// The objects matching the category through their name. The scan of
+        /// every loaded object is cached for a short while (see NameScans).
+        /// </summary>
+        private static List<GameObject> NameScanOf(Category category)
         {
-            return CollectRoots(category).Count;
+            NameScan scan;
+            if (
+                NameScans.TryGetValue(category.Key, out scan)
+                && Time.realtimeSinceStartup - scan.Time < NameScanDuration
+            )
+            {
+                return scan.Roots;
+            }
+
+            scan = new NameScan { Time = Time.realtimeSinceStartup };
+            AddNamedRoots(category, scan.Roots);
+            NameScans[category.Key] = scan;
+            return scan.Roots;
+        }
+
+        private static void AddNamedRoots(Category category, List<GameObject> roots)
+        {
+            HashSet<int> seen = new HashSet<int>();
+
+            foreach (
+                UnityEngine.Object obj in UnityEngine.Object.FindObjectsByType(
+                    typeof(Transform),
+                    FindObjectsSortMode.None
+                )
+            )
+            {
+                Transform t = obj as Transform;
+                if (t == null || !category.MatchesName(t.name))
+                {
+                    continue;
+                }
+
+                // only the outermost match becomes a root
+                if (HasMatchingParent(t, category))
+                {
+                    continue;
+                }
+
+                if (seen.Add(t.gameObject.GetInstanceID()))
+                {
+                    roots.Add(t.gameObject);
+                }
+            }
+        }
+
+        private static bool HasMatchingParent(Transform transform, Category category)
+        {
+            for (Transform parent = transform.parent; parent != null; parent = parent.parent)
+            {
+                if (category.MatchesName(parent.name))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

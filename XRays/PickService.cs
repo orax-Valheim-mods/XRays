@@ -31,6 +31,12 @@ namespace XRays
         /// Heightmap, ...). Null for categories created "by name".
         /// </summary>
         public Type MatchedType;
+
+        /// <summary>
+        /// The object name that matched the category (when the category also
+        /// matches names, e.g. the small trees in "Trees"). Null otherwise.
+        /// </summary>
+        public string MatchedName;
     }
 
     /// <summary>
@@ -211,7 +217,25 @@ namespace XRays
                 list = string.Join(", ", names);
             }
 
-            string matched = pick.MatchedType != null ? pick.MatchedType.Name : "?";
+            if (category.NameContains != null && category.NameContains.Length > 0)
+            {
+                list += " + names";
+            }
+
+            string matched;
+            if (pick.MatchedType != null)
+            {
+                matched = pick.MatchedType.Name;
+            }
+            else if (pick.MatchedName != null)
+            {
+                matched = "name (\"" + pick.MatchedName + "\")";
+            }
+            else
+            {
+                matched = "?";
+            }
+
             return "Game types: " + list + "  ·  match: " + matched;
         }
 
@@ -310,13 +334,32 @@ namespace XRays
             return null;
         }
 
+        /// <summary>
+        /// Result for an object root (network view / LOD / top of the hierarchy):
+        /// the category matching that object name when there is one (the small
+        /// trees, the stubs, ...), a category created from the name otherwise.
+        /// </summary>
         private static PickResult ObjectResult(Transform current)
         {
-            Category category = Category.ForName(current.name);
+            foreach (Category category in Categories.BuiltIn)
+            {
+                if (category.MatchesName(current.name))
+                {
+                    return new PickResult
+                    {
+                        Kind = PickKind.Object,
+                        Category = category,
+                        Root = current.gameObject,
+                        Name = current.name,
+                        MatchedName = current.name
+                    };
+                }
+            }
+
             return new PickResult
             {
                 Kind = PickKind.Object,
-                Category = category,
+                Category = Category.ForName(current.name),
                 Root = current.gameObject,
                 Name = current.name
             };
