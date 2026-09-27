@@ -200,7 +200,10 @@ namespace XRays
             // pre-compute the panel layout
             float[] rows = new float[8 + Categories.BuiltIn.Length];
             rows[0] = Row(44f); // title
-            rows[1] = Row(80f); // under the cursor (element, game types, hit, coordinates)
+
+            // under the cursor: the text wraps over several lines (element,
+            // game types, hit, coordinates), so it gets a whole extra line
+            rows[1] = Row(96f);
             rows[2] = Row(30f); // terrain
             rows[3] = Row(30f); // water
             rows[4] = Row(30f); // clouds
@@ -253,7 +256,7 @@ namespace XRays
                 LeftMargin,
                 rows[1],
                 430f,
-                80f,
+                96f,
                 13,
                 BodyColor,
                 TextAnchor.MiddleLeft,
