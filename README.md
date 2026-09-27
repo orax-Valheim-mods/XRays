@@ -1,0 +1,74 @@
+# XRays
+
+A Valheim "X-Ray vision" mod: hides the terrain, the water, categories of
+world objects or a single object under the cursor so you can see what is
+behind them.
+
+* Built-in control panel (vanilla woodpanel via [Jötunn](https://valheim-modding.github.io/Jotunn/)).
+* Keyboard hotkeys: `F8` panel · `F7` terrain · `F10` water · `F9` object under the cursor · `Ctrl+F9` whole category.
+* Client-side only, no server change: only `Renderer`s are disabled (their
+  original state is memorised and restored), colliders are never touched.
+
+See `XRays\Package\README.md` for the Thunderstore description.
+
+## Project layout
+
+```
+XRays.sln                  solution (build this, not the .csproj alone)
+Environment.props          BepInEx / deploy paths (Gale profile "dev")
+scripts\publish.ps1        copies the built DLL into BepInEx\scripts
+XRays\XRays.cs             main plugin: config, hotkeys, actions
+XRays\Categories.cs        category registry (trees, rocks, ...)
+XRays\VisibilityManager.cs hiding state + application on renderers
+XRays\PickService.cs       picking by ray cast under the cursor
+XRays\Panel.cs             Jötunn panel
+XRays\Package\             Thunderstore manifest.json / README.md / icon.png
+```
+
+## Building
+
+```powershell
+dotnet build XRays.sln
+```
+
+* Always build the **solution**: building the `.csproj` alone breaks the
+  post-build step (`$(SolutionDir)` is `*Undefined*`).
+* In `Debug`, the post-build step publishes `XRays.dll` (+ `.pdb`, `.mdb`)
+  to `BepInEx\scripts` of the game profile, where the BepInEx **Script Engine**
+  loads it on launch.
+* In `Release`, an archive ready for Thunderstore is created in `Package`.
+
+## Configuration
+
+Hotkeys and picking distance: `BepInEx\config\orax.XRays.cfg`
+(created on the first launch, also editable in game through Jötunn's
+ConfigManager).
+
+---
+
+# Development guide (Jötunn template)
+
+Please see the [Jötunn Docs](https://valheim-modding.github.io/Jotunn/guides/overview.html) for detailed documentation and setup.
+
+### Post build automations
+
+`scripts\publish.ps1` is referenced from the project file as a post-build event.
+
+* **Debug** : the compiled dll and the `.mdb` debug file are copied to
+  `<ValheimDir>\BepInEx\scripts` (path set in `Environment.props` → `MOD_DEPLOYPATH`).
+* **Release** : a compressed file with the binaries is created in `XRays\Package`,
+  ready for upload to Thunderstore.
+
+### Prebuild actions
+
+`DoPrebuild.props` makes Jötunn generate publicized assemblies automatically
+(required to access internal game APIs).
+
+### Debugging
+
+See the wiki page [Debugging Plugins via IDE](https://github.com/Valheim-Modding/Wiki/wiki/Debugging-Plugins-via-IDE).
+
+### After a game update
+
+When Valheim updates, the assembly references must be renewed: delete the
+publicized assemblies and rebuild so the prebuild task regenerates them.
