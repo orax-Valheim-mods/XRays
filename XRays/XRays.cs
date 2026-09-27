@@ -149,19 +149,32 @@ namespace XRays
                 Panel.Toggle();
             }
 
-            // closing the panel with Escape: the game would open its own menu
-            // on the very same key press
-            if (Panel != null && Panel.IsOpen && Hotkey(KeyClose, consoleBlocked) && !GameGuiOpen())
+            // closing the panel with Escape. The game reads that very key in
+            // its own Menu.Update, which can run before this one: it then
+            // shows its pause menu first, which makes Menu.IsVisible block
+            // the hotkey above. The pause menu appearing while the panel is
+            // on screen is therefore also taken for a press of Escape, and
+            // it is put back right away.
+            if (Panel != null && Panel.IsOpen)
             {
-                Panel.Close();
-                menuSuppressTimer = MenuSuppressDuration;
+                if (PauseMenuVisible())
+                {
+                    Panel.Close();
+                    Menu.instance.Hide();
+                    menuSuppressTimer = MenuSuppressDuration;
+                }
+                else if (Hotkey(KeyClose, consoleBlocked))
+                {
+                    Panel.Close();
+                    menuSuppressTimer = MenuSuppressDuration;
+                }
             }
 
             // the game menu may be shown after this Update (same frame)
             if (menuSuppressTimer > 0f)
             {
                 menuSuppressTimer -= deltaTime;
-                if (Menu.IsVisible() && Menu.instance != null)
+                if (PauseMenuVisible())
                 {
                     Menu.instance.Hide();
                 }
@@ -375,15 +388,13 @@ namespace XRays
         }
 
         /// <summary>
-        /// Another game window is on screen (inventory, map, console, text
-        /// input): Escape belongs to that window, not to the panel.
+        /// The pause menu is really on screen. Menu.IsVisible also returns
+        /// true during the frames following a popup, which has nothing to do
+        /// with the menu itself.
         /// </summary>
-        private static bool GameGuiOpen()
+        private static bool PauseMenuVisible()
         {
-            return InventoryGui.IsVisible()
-                || Minimap.IsOpen()
-                || Console.IsVisible()
-                || TextInput.IsVisible();
+            return Menu.IsVisible() && !UnifiedPopup.WasVisibleThisFrame();
         }
 
         private void Notify(string text)
