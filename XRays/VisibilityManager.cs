@@ -53,10 +53,14 @@ namespace XRays
         public bool WaterHidden { get; private set; }
         public bool CloudsHidden { get; private set; }
 
+        /// <summary>Your own character (the other players belong to the Creatures category).</summary>
+        public bool PlayerHidden { get; private set; }
+
         public bool AnyActive =>
             TerrainHidden
             || WaterHidden
             || CloudsHidden
+            || PlayerHidden
             || hiddenCategories.Count > 0
             || individualObjects.Count > 0;
 
@@ -121,6 +125,26 @@ namespace XRays
         }
 
         public void ToggleClouds() => SetClouds(!CloudsHidden);
+
+        // ---------------------------------------------------------------- player
+
+        /// <summary>
+        /// Hides your own character (body, armor and held item) so it does not
+        /// block the view. Nothing else is touched: the colliders, the camera
+        /// and the other players are unaffected.
+        /// </summary>
+        public void SetPlayer(bool hidden)
+        {
+            if (PlayerHidden == hidden)
+            {
+                return;
+            }
+
+            PlayerHidden = hidden;
+            Reconcile();
+        }
+
+        public void TogglePlayer() => SetPlayer(!PlayerHidden);
 
         // ---------------------------------------------------------------- categories
 
@@ -215,6 +239,7 @@ namespace XRays
             TerrainHidden = false;
             WaterHidden = false;
             CloudsHidden = false;
+            PlayerHidden = false;
             hiddenCategories.Clear();
             individualObjects.Clear();
             Reconcile();
@@ -222,14 +247,16 @@ namespace XRays
 
         /// <summary>
         /// Hides everything the panel can hide (the reverse of RestoreAll):
-        /// terrain, water, clouds and every known category. The objects picked
-        /// one by one are already hidden, they need nothing.
+        /// terrain, water, clouds, your own character and every known
+        /// category. The objects picked one by one are already hidden, they
+        /// need nothing.
         /// </summary>
         public void HideAll()
         {
             TerrainHidden = true;
             WaterHidden = true;
             CloudsHidden = true;
+            PlayerHidden = true;
 
             foreach (Category category in Categories.All)
             {
@@ -327,6 +354,18 @@ namespace XRays
                     AddWanted(env.m_clouds, wanted);
                     AddWanted(env.m_rainClouds, wanted);
                     AddWanted(env.m_rainCloudsDownside, wanted);
+                }
+            }
+
+            if (PlayerHidden)
+            {
+                // your own character: body, armor and the held item. Resolved
+                // on every pass, the game rebuilds that visual when the
+                // equipment or the character itself changes.
+                Player player = Player.m_localPlayer;
+                if (player != null)
+                {
+                    AddRenderers(player.gameObject, wanted, wantedInstances, waterIds);
                 }
             }
 

@@ -27,6 +27,7 @@ namespace XRays
         internal ConfigEntry<KeyCode> KeyTerrain;
         internal ConfigEntry<KeyCode> KeyWater;
         internal ConfigEntry<KeyCode> KeyClouds;
+        internal ConfigEntry<KeyCode> KeyPlayer;
         internal ConfigEntry<KeyCode> KeyPick;
         internal ConfigEntry<KeyCode> ModifierKey;
 
@@ -81,6 +82,12 @@ namespace XRays
                 "Clouds",
                 KeyCode.F6,
                 "Hide / show the clouds in the sky."
+            );
+            KeyPlayer = Config.Bind(
+                "Hotkeys",
+                "Player",
+                KeyCode.F4,
+                "Hide / show your own character (body, armor and held item). The other players belong to the Creatures category."
             );
             KeyPick = Config.Bind(
                 "Hotkeys",
@@ -201,6 +208,11 @@ namespace XRays
                         ToggleClouds();
                     }
 
+                    if (Hotkey(KeyPlayer, blocked))
+                    {
+                        TogglePlayer();
+                    }
+
                     if (Hotkey(KeyPick, blocked))
                     {
                         if (ModifierHeld())
@@ -242,6 +254,12 @@ namespace XRays
         {
             Visibility.ToggleClouds();
             Notify(Visibility.CloudsHidden ? "Clouds hidden" : "Clouds shown");
+        }
+
+        internal void TogglePlayer()
+        {
+            Visibility.TogglePlayer();
+            Notify(Visibility.PlayerHidden ? "Player hidden" : "Player shown");
         }
 
         internal void ToggleObjectUnderCursor()

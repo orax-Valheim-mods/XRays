@@ -6,10 +6,11 @@ etc.
 
 Two ways to use it:
 
-* **The control panel** (vanilla woodpanel via Jötunn): one checkbox per
+* **The control panel** (vanilla woodpanel via Jötunn): a checkbox for the
+  terrain, the water, the clouds and your own character, one checkbox per
   category, loaded-object counters, and two global buttons — **Hide all**
-  (terrain, water, clouds and every category at once) and **Show all** (back
-  to the normal world).
+  (terrain, water, clouds, your own character and every category at once)
+  and **Show all** (back to the normal world).
 * **The keyboard hotkeys**: they act directly on the element under the
   cursor.
 
@@ -22,6 +23,7 @@ Two ways to use it:
 | `F7` | Hides / shows the **terrain** |
 | `F10` | Hides / shows the **water** (zones and the sea on the horizon) |
 | `F6` | Hides / shows the **clouds** of the sky |
+| `F4` | Hides / shows **your own character** (body, armor and held item) |
 | `F9` | Hides / shows **the object under the cursor** |
 | `Ctrl` + `F9` | Hides / shows the **whole category** of that object |
 
@@ -41,6 +43,11 @@ Two ways to use it:
   aimed point for the terrain / water) and the distance in meters.
 * Colliders are never touched: the world stays playable, only renderers are
   disabled (their original state is memorised and restored).
+* **Hide player** takes your own character out of the picture — body, armor
+  and held item — so it never blocks the view. It only disables renderers,
+  the colliders and the camera stay untouched; the **Creatures** category
+  never includes your own character, and the ray cast skips it as well (you
+  never pick yourself).
 
 ## Recognized categories
 
@@ -104,6 +111,7 @@ launch, also editable in game through Jötunn's ConfigManager):
 | `Hotkeys` | `Terrain` | `F7` | Hides / shows the terrain |
 | `Hotkeys` | `Water` | `F10` | Hides / shows the water |
 | `Hotkeys` | `Clouds` | `F6` | Hides / shows the clouds |
+| `Hotkeys` | `Player` | `F4` | Hides / shows your own character (the Creatures category never includes it) |
 | `Hotkeys` | `Pick` | `F9` | Hides / shows the object under the cursor |
 | `Hotkeys` | `Category modifier` | `LeftControl` | Hold together with `Pick` to act on the whole category |
 | `Selection` | `Max distance` | `100` | Maximum picking distance (meters) |
