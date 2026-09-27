@@ -42,20 +42,48 @@ namespace XRays
         {
             Instance = this;
 
-            KeyPanel = Config.Bind("Hotkeys", "Panel", KeyCode.F8,
-                "Open / close the XRays control panel.");
-            KeyTerrain = Config.Bind("Hotkeys", "Terrain", KeyCode.F7,
-                "Hide / show the terrain in order to see through it.");
-            KeyWater = Config.Bind("Hotkeys", "Water", KeyCode.F10,
-                "Hide / show the water surface.");
-            KeyPick = Config.Bind("Hotkeys", "Pick", KeyCode.F9,
-                "Hide / show the object under the cursor.");
-            ModifierKey = Config.Bind("Hotkeys", "Category modifier", KeyCode.LeftControl,
-                "Hold together with Pick to act on the whole category.");
-            PickDistance = Config.Bind("Selection", "Max distance", 100f,
-                "Maximum picking distance under the cursor (in meters).");
-            LogCursorInfo = Config.Bind("Logging", "Log cursor info", false,
-                "Write the \"Under the cursor\" info (the exact text shown in the panel) to the BepInEx log whenever it changes.");
+            KeyPanel = Config.Bind(
+                "Hotkeys",
+                "Panel",
+                KeyCode.F8,
+                "Open / close the XRays control panel."
+            );
+            KeyTerrain = Config.Bind(
+                "Hotkeys",
+                "Terrain",
+                KeyCode.F7,
+                "Hide / show the terrain in order to see through it."
+            );
+            KeyWater = Config.Bind(
+                "Hotkeys",
+                "Water",
+                KeyCode.F10,
+                "Hide / show the water surface."
+            );
+            KeyPick = Config.Bind(
+                "Hotkeys",
+                "Pick",
+                KeyCode.F9,
+                "Hide / show the object under the cursor."
+            );
+            ModifierKey = Config.Bind(
+                "Hotkeys",
+                "Category modifier",
+                KeyCode.LeftControl,
+                "Hold together with Pick to act on the whole category."
+            );
+            PickDistance = Config.Bind(
+                "Selection",
+                "Max distance",
+                100f,
+                "Maximum picking distance under the cursor (in meters)."
+            );
+            LogCursorInfo = Config.Bind(
+                "Logging",
+                "Log cursor info",
+                false,
+                "Write the \"Under the cursor\" info (the exact text shown in the panel) to the BepInEx log while the panel is open, whenever it changes."
+            );
 
             Visibility = new VisibilityManager();
             Panel = new Panel(this, Visibility);
@@ -89,7 +117,6 @@ namespace XRays
             if (Visibility != null)
             {
                 Visibility.Tick(deltaTime);
-                TickCursorLog(deltaTime);
             }
 
             bool consoleBlocked = Blocked();
@@ -128,6 +155,12 @@ namespace XRays
                         }
                     }
                 }
+            }
+
+            // logged last so it reflects the panel state of this very frame
+            if (Visibility != null)
+            {
+                TickCursorLog(deltaTime);
             }
         }
 
@@ -207,7 +240,11 @@ namespace XRays
 
             bool wasHidden = Visibility.IsCategoryHidden(pick.Category.Key);
             int count = Visibility.SetCategory(pick.Category, !wasHidden);
-            Notify(pick.Category.Label + ": " + (!wasHidden ? "hidden (" + count + ")" : "shown (" + count + ")"));
+            Notify(
+                pick.Category.Label
+                    + ": "
+                    + (!wasHidden ? "hidden (" + count + ")" : "shown (" + count + ")")
+            );
         }
 
         // ------------------------------------------------------------------
@@ -222,13 +259,15 @@ namespace XRays
         /// <summary>
         /// Optional logging of the "Under the cursor" info: same text as the
         /// panel, sampled periodically and written only when it changes so the
-        /// log stays readable. Works whether the panel is open or not.
+        /// log stays readable. Only runs while the panel is open.
         /// </summary>
         private void TickCursorLog(float deltaTime)
         {
-            if (LogCursorInfo == null || !LogCursorInfo.Value)
+            bool guiOpen = Panel != null && Panel.IsOpen;
+
+            if (LogCursorInfo == null || !LogCursorInfo.Value || !guiOpen)
             {
-                // reset so that re-enabling the option logs the current target again
+                // reset so the current target is logged again when logging resumes
                 lastCursorLog = null;
                 cursorLogTimer = 0f;
                 return;
