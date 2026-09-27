@@ -235,6 +235,21 @@ namespace XRays
                 },
                 // the clutter spawned by the ClutterSystem lives under "grassroot"
                 RootProvider = GrassRoots
+            },
+            new Category
+            {
+                Key = "locations",
+                Label = "Locations",
+                // the structures the game places on its own: a dungeon
+                // entrance sits below a LocationProxy (the object that spawns
+                // the location when the player comes close), and the location
+                // itself carries Location. Neither of them belongs to any
+                // other category, so without this one they would survive
+                // everything, Hide all included.
+                // Listed last: a known component always decides the category,
+                // so the trees, the rocks and the build pieces claim their
+                // own objects before these two.
+                Types = new[] { typeof(LocationProxy), typeof(Location) }
             }
         };
 

@@ -81,7 +81,7 @@ Two ways to use it:
 ## Recognized categories
 
 Trees · Rocks / ore · Pickable resources · Build pieces · Creatures ·
-Ground items · Crops · Spawners · Grass / vegetation.
+Ground items · Crops · Spawners · Grass / vegetation · Locations.
 
 A category is normally backed by a game component (`TreeBase` / `TreeLog` for
 Trees, `WearNTear` / `Piece` for Build pieces, ...). **Creatures** follows
@@ -127,6 +127,15 @@ isolated plants are caught by name — `bush`, `shrub`, `grass`, `fern`, `reed`,
 grouped under its own `grassroot` object. That root matters: the
 `ClutterSystem` component itself lives on the root of the scene, hiding it
 would take the clouds, the sea and the weather down with the grass.
+
+**Locations** covers the structures the game places on its own: a dungeon
+entrance lives below a `LocationProxy` — the object that spawns the location
+when you come close — and that proxy carries none of the components above, so
+the entrance survives every other category, **Hide all** included; the
+locations themselves (huts, ruins, boss rooms, ...) carry `Location`. Both
+components belong to this category, which is listed last: a known component
+always decides the category, so the trees, the rocks and the build pieces
+still claim their own objects first.
 
 ## Installation
 
