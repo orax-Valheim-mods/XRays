@@ -95,8 +95,18 @@ namespace XRays
                 Key = "trees",
                 Label = "Trees",
                 Types = new[] { typeof(TreeBase), typeof(TreeLog) },
-                // small trees, stubs and old logs have no TreeBase / TreeLog
-                NameContains = new[] { "tree", "birch", "oak", "stump" }
+                // small trees, stubs, roots and branches only have a Destructible
+                NameContains = new[]
+                {
+                    "tree",
+                    "birch",
+                    "beech",
+                    "oak",
+                    "stump",
+                    "stub",
+                    "root",
+                    "branch"
+                }
             },
             new Category
             {
@@ -319,6 +329,14 @@ namespace XRays
                     continue;
                 }
 
+                // a known game component always decides the category of the
+                // object (that is what the picker does): never claim an object
+                // through its name when it belongs to a typed category
+                if (HasBuiltInComponent(t.gameObject))
+                {
+                    continue;
+                }
+
                 // only the outermost match becomes a root
                 if (HasMatchingParent(t, category))
                 {
@@ -339,6 +357,32 @@ namespace XRays
                 if (category.MatchesName(parent.name))
                 {
                     return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Does the object carry one of the game components of a known
+        /// category? Such an object is never claimed through its name: the
+        /// picker would report the component's category instead.
+        /// </summary>
+        private static bool HasBuiltInComponent(GameObject go)
+        {
+            foreach (Category category in BuiltIn)
+            {
+                if (category.Types == null)
+                {
+                    continue;
+                }
+
+                foreach (Type type in category.Types)
+                {
+                    if (go.GetComponent(type) != null)
+                    {
+                        return true;
+                    }
                 }
             }
 

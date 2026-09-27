@@ -43,10 +43,13 @@ Ground items · Crops · Spawners · Grass / vegetation.
 
 A category is normally backed by a game component (`TreeBase` / `TreeLog` for
 Trees, `WearNTear` / `Piece` for Build pieces, ...). The **Trees** category
-also matches object names — `tree`, `birch`, `oak`, `stump` (case
-insensitive) — because the small decorative trees, the stubs and the old logs
-only carry a `Destructible`: without that name match they would never be
-hidden with the rest of the forest.
+also matches object names — `tree`, `birch`, `beech`, `oak`, `stump`, `stub`,
+`root`, `branch` (case insensitive) — because the small decorative trees, the
+stubs, the roots and the branches only carry a `Destructible`: without that
+name match they would never be hidden with the rest of the forest. An object
+holding a known component is never claimed by the name rule: that component
+decides its category, which keeps the panel label and the hidden group in
+sync.
 
 Any object that does not belong to those groups automatically creates a
 "name" category (every object sharing the same name).
