@@ -176,7 +176,10 @@ namespace XRays
             {
                 Key = "creatures",
                 Label = "Creatures",
-                Types = new[] { typeof(Character) },
+                // Character covers the animals and the monsters; a swimming
+                // fish carries no Character at all, only Fish + ItemDrop,
+                // and would be reported as a ground item instead
+                Types = new[] { typeof(Character), typeof(Fish) },
                 SkipLocalPlayer = true
             },
             new Category

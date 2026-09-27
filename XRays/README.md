@@ -65,7 +65,10 @@ Trees · Rocks / ore · Pickable resources · Build pieces · Creatures ·
 Ground items · Crops · Spawners · Grass / vegetation.
 
 A category is normally backed by a game component (`TreeBase` / `TreeLog` for
-Trees, `WearNTear` / `Piece` for Build pieces, ...). The **Trees** category
+Trees, `WearNTear` / `Piece` for Build pieces, ...). **Creatures** follows
+`Character` — the animals and the monsters — plus `Fish`, because a swimming
+fish carries no `Character` at all (it is `Fish` + `ItemDrop`) and would be
+reported as a ground item otherwise. The **Trees** category
 also matches object names — `tree`, `birch`, `beech`, `oak`, `stump`, `stub`,
 `root`, `branch` (case insensitive) — because the small decorative trees, the
 stubs, the roots and the branches only carry a `Destructible`: without that
