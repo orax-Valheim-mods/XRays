@@ -203,8 +203,9 @@ namespace XRays
                 return center;
             }
 
-            // pre-compute the panel layout
-            float[] rows = new float[10 + Categories.BuiltIn.Length];
+            // pre-compute the panel layout: one single list of options, the
+            // world layers first and the categories right after them
+            float[] rows = new float[9 + Categories.BuiltIn.Length];
             rows[0] = Row(44f); // title
 
             // under the cursor: the text wraps over several lines (element,
@@ -215,14 +216,13 @@ namespace XRays
             rows[4] = Row(30f); // clouds
             rows[5] = Row(30f); // player
             rows[6] = Row(30f); // hud
-            rows[7] = Row(26f); // section header
             for (int i = 0; i < Categories.BuiltIn.Length; i++)
             {
-                rows[8 + i] = Row(26f);
+                rows[7 + i] = Row(26f);
             }
 
-            rows[8 + Categories.BuiltIn.Length] = Row(34f); // hidden objects
-            rows[9 + Categories.BuiltIn.Length] = Row(82f); // help text (4 lines)
+            rows[7 + Categories.BuiltIn.Length] = Row(34f); // hidden objects
+            rows[8 + Categories.BuiltIn.Length] = Row(82f); // help text (4 lines)
             float panelHeight = cursor + 16f;
 
             root = gui.CreateWoodpanel(
@@ -383,23 +383,11 @@ namespace XRays
                 gui.AveriaSerif
             );
 
-            // categories section
-            MakeText(
-                "Categories (hide / show)",
-                LeftMargin,
-                rows[7],
-                350f,
-                24f,
-                16,
-                gui.ValheimOrange,
-                TextAnchor.MiddleLeft,
-                gui.AveriaSerifBold
-            );
-
+            // the categories simply continue the list of options
             for (int i = 0; i < Categories.BuiltIn.Length; i++)
             {
                 Category category = Categories.BuiltIn[i];
-                float y = rows[8 + i];
+                float y = rows[7 + i];
 
                 CategoryRow row = new CategoryRow
                 {
@@ -438,7 +426,7 @@ namespace XRays
             }
 
             // hidden objects + the two global buttons on its right
-            int last = 8 + Categories.BuiltIn.Length;
+            int last = 7 + Categories.BuiltIn.Length;
             objectsText = MakeText(
                 "Hidden objects: 0",
                 LeftMargin,

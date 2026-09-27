@@ -6,11 +6,11 @@ etc.
 
 Two ways to use it:
 
-* **The control panel** (vanilla woodpanel via Jötunn): a checkbox for the
-  terrain, the water, the clouds, your own character and the HUD, one
-  checkbox per category, loaded-object counters, and two global buttons —
-  **Hide all** (terrain, water, clouds, your own character, the HUD and
-  every category at once) and **Show all** (back to the normal world).
+* **The control panel** (vanilla woodpanel via Jötunn): one single list of
+  options — the terrain, the water, the clouds, your own character, the HUD,
+  then a checkbox per category — with loaded-object counters and two global
+  buttons, **Hide all** (everything in that list at once) and **Show all**
+  (back to the normal world).
 * **The keyboard hotkeys**: they act directly on the element under the
   cursor.
 
