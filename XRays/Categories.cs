@@ -132,6 +132,13 @@ namespace XRays
     /// </summary>
     internal static class Categories
     {
+        /// <summary>
+        /// Key of the category that follows the animals and the monsters. The
+        /// visibility code checks it again: the bars the game draws over a
+        /// creature belong to the creature and are taken away with it.
+        /// </summary>
+        public const string CreaturesKey = "creatures";
+
         public static readonly Category[] BuiltIn =
         {
             new Category
@@ -174,7 +181,7 @@ namespace XRays
             },
             new Category
             {
-                Key = "creatures",
+                Key = CreaturesKey,
                 Label = "Creatures",
                 // Character covers the animals and the monsters; a swimming
                 // fish carries no Character at all, only Fish + ItemDrop,

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace XRays
 {
@@ -48,6 +49,15 @@ namespace XRays
         private readonly HashSet<string> hiddenCategories = new HashSet<string>();
         private readonly HashSet<int> hiddenRoots = new HashSet<int>();
         private float refreshTimer;
+
+        /// <summary>
+        /// The group put on the root of the enemy bars to fade them out, plus
+        /// what that root had before it (alpha 1 and the raycasts on when the
+        /// group is the one the mod added itself).
+        /// </summary>
+        private CanvasGroup enemyHudGroup;
+        private float enemyHudAlpha = 1f;
+        private bool enemyHudRaycasts = true;
 
         public bool TerrainHidden { get; private set; }
         public bool WaterHidden { get; private set; }
@@ -444,6 +454,10 @@ namespace XRays
 
         public void Tick(float deltaTime)
         {
+            // cheap when nothing has to be faded, and it picks up an
+            // EnemyHud built long after the state was applied
+            ApplyEnemyHud();
+
             if (HudHidden)
             {
                 // re-asserted every frame: the HUD must never flash back on
@@ -588,6 +602,7 @@ namespace XRays
             hiddenRoots.UnionWith(roots);
 
             Apply(wanted, wantedInstances);
+            ApplyEnemyHud();
         }
 
         // ---------------------------------------------------------------- internals
@@ -638,6 +653,85 @@ namespace XRays
             if (root.transform.localPosition.x >= NotVisibleThreshold)
             {
                 root.transform.localPosition = Vector3.zero;
+            }
+        }
+
+        /// <summary>
+        /// The bars the game floats over the creatures (name, health, levels,
+        /// boss bar) belong neither to the renderers nor to the HUD root:
+        /// EnemyHud builds them from its own Update, so a deactivation is put
+        /// back right away and no renderer pass ever sees them. They are
+        /// faded out instead, with a CanvasGroup put on the root the bars are
+        /// instantiated into: the group survives the LateUpdate that
+        /// activates that root again, and it covers the bars appearing later
+        /// on as well, with nothing to do per character.
+        ///
+        /// The bars follow the creatures — checked by hand, taken by "Hide
+        /// all" or by the reveal toggle, the category is the very key either
+        /// way — and the HUD option, which hides the rest of the HUD anyway.
+        /// </summary>
+        private void ApplyEnemyHud()
+        {
+            EnemyHud enemyHud = EnemyHud.instance;
+            GameObject root = enemyHud != null ? enemyHud.m_hudRoot : null;
+            if (root == null)
+            {
+                return;
+            }
+
+            bool hide = HudHidden || IsCategoryHidden(Categories.CreaturesKey);
+            CanvasGroup group = enemyHudGroup;
+
+            if (group == null)
+            {
+                // nothing done yet, or the group went away with its scene
+                enemyHudGroup = null;
+            }
+            else if (group.gameObject != root)
+            {
+                // the root was rebuilt: its state has to be read again
+                enemyHudGroup = null;
+                group = null;
+            }
+
+            if (!hide)
+            {
+                if (group != null)
+                {
+                    group.alpha = enemyHudAlpha;
+                    group.blocksRaycasts = enemyHudRaycasts;
+                    enemyHudGroup = null;
+                }
+
+                return;
+            }
+
+            if (group == null)
+            {
+                group = root.GetComponent<CanvasGroup>();
+                if (group == null)
+                {
+                    enemyHudAlpha = 1f;
+                    enemyHudRaycasts = true;
+                    group = root.AddComponent<CanvasGroup>();
+                }
+                else
+                {
+                    enemyHudAlpha = group.alpha;
+                    enemyHudRaycasts = group.blocksRaycasts;
+                }
+
+                enemyHudGroup = group;
+            }
+
+            if (group.alpha != 0f)
+            {
+                group.alpha = 0f;
+            }
+
+            if (group.blocksRaycasts)
+            {
+                group.blocksRaycasts = false;
             }
         }
 

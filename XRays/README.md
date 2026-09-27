@@ -71,12 +71,19 @@ Two ways to use it:
 * **HUD** takes the whole in-game HUD away in one go: health, stamina,
   eitr and adrenaline bars, hot bar, mini map, crosshair, status effects,
   build / key hints, ship and mount panels — everything the game itself
-  groups under its HUD root. Chat, notifications, enemy health bars and
-  damage numbers are separate overlays and stay on screen, and so does the
-  pause menu (the game drags it off screen along with the HUD; the mod keeps
-  it in view, otherwise Escape would open an invisible menu). Showing the
-  HUD again also undoes the game's own `Ctrl` + `F3` toggle, so the HUD
-  always comes back exactly where it belongs.
+  groups under its HUD root. Chat, notifications and damage numbers are
+  separate overlays and stay on screen, and so does the pause menu (the
+  game drags it off screen along with the HUD; the mod keeps it in view,
+  otherwise Escape would open an invisible menu). Showing the HUD again
+  also undoes the game's own `Ctrl` + `F3` toggle, so the HUD always comes
+  back exactly where it belongs.
+* The bars floating over the creatures (name, health, levels, boss bar) are
+  drawn by `EnemyHud`, an overlay of their own, so no renderer pass ever
+  sees them. The **Creatures** category takes them away together with the
+  creatures, and the HUD option takes them as well. They are faded out with
+  a group put on the EnemyHud root — the game activates that root again
+  from its own update, a deactivation would not hold — and that group also
+  covers the bars appearing later on, with nothing to do per creature.
 
 ## Recognized categories
 
@@ -90,7 +97,10 @@ fish carries no `Character` at all (it is `Fish` + `ItemDrop`) and would be
 reported as a ground item otherwise, plus `RandomFlyingBird`: the birds
 circling overhead (`Crow`, `Seagal`, `AshCrow`) carry no `Character` either,
 only a `Destructible`, and without that component they would stay in sight
-while every other animal is hidden. The **Trees** category
+while every other animal is hidden. The category also takes the bars the
+game floats over those creatures (bar and name included): they are no
+renderers either, they get faded out — see the bullet above. The **Trees**
+category
 also matches object names — `tree`, `birch`, `beech`, `oak`, `stump`, `stub`,
 `root`, `branch` (case insensitive) — because the small decorative trees, the
 stubs, the roots and the branches only carry a `Destructible`: without that
