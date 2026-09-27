@@ -137,8 +137,11 @@ namespace XRays
                 row.Toggle.SetIsOnWithoutNotify(visibility.IsCategoryHidden(row.Category.Key));
             }
 
-            objectsText.text = "Hidden objects: " + visibility.IndividualCount
-                               + "    Other: " + visibility.HiddenNameCategoryCount;
+            objectsText.text =
+                "Hidden objects: "
+                + visibility.IndividualCount
+                + "    Other: "
+                + visibility.HiddenNameCategoryCount;
 
             cursorText.text = PickService.Describe(plugin.PickDistance.Value, visibility);
         }
@@ -193,8 +196,8 @@ namespace XRays
                 rows[5 + i] = Row(26f);
             }
 
-            rows[5 + Categories.BuiltIn.Length] = Row(34f);   // hidden objects
-            rows[6 + Categories.BuiltIn.Length] = Row(52f);   // help text
+            rows[5 + Categories.BuiltIn.Length] = Row(34f); // hidden objects
+            rows[6 + Categories.BuiltIn.Length] = Row(52f); // help text
             float panelHeight = cursor + 16f;
 
             root = gui.CreateWoodpanel(
@@ -204,7 +207,8 @@ namespace XRays
                 new Vector2(280f, 0f),
                 PanelWidth,
                 panelHeight,
-                true);
+                true
+            );
 
             if (root == null)
             {
@@ -215,24 +219,90 @@ namespace XRays
             categoryRows.Clear();
 
             // title + close button
-            MakeText("XRays — Visibility", LeftMargin, rows[0], 300f, 30f, 22, gui.ValheimOrange, TextAnchor.MiddleLeft, gui.AveriaSerifBold);
+            MakeText(
+                "XRays — Visibility",
+                LeftMargin,
+                rows[0],
+                300f,
+                30f,
+                22,
+                gui.ValheimOrange,
+                TextAnchor.MiddleLeft,
+                gui.AveriaSerifBold
+            );
             Button close = MakeButton("Close", RightMargin, rows[0], 96f, 30f);
             close.onClick.AddListener(Close);
 
             // "under the cursor" line
-            cursorText = MakeText("Under the cursor: —", LeftMargin, rows[1], 430f, 60f, 14, BodyColor, TextAnchor.MiddleLeft, gui.AveriaSerif);
+            cursorText = MakeText(
+                "Under the cursor: —",
+                LeftMargin,
+                rows[1],
+                430f,
+                60f,
+                14,
+                BodyColor,
+                TextAnchor.MiddleLeft,
+                gui.AveriaSerif
+            );
 
             // terrain / water
-            terrainToggle = MakeToggle(LeftMargin, rows[2], visibility.TerrainHidden,
-                v => { visibility.SetTerrain(v); Refresh(); });
-            MakeText("Hide terrain", LeftMargin + 36f, rows[2], 300f, 26f, 15, BodyColor, TextAnchor.MiddleLeft, gui.AveriaSerif);
+            terrainToggle = MakeToggle(
+                LeftMargin,
+                rows[2],
+                visibility.TerrainHidden,
+                v =>
+                {
+                    visibility.SetTerrain(v);
+                    Refresh();
+                }
+            );
+            MakeText(
+                "Hide terrain",
+                LeftMargin + 36f,
+                rows[2],
+                300f,
+                26f,
+                15,
+                BodyColor,
+                TextAnchor.MiddleLeft,
+                gui.AveriaSerif
+            );
 
-            waterToggle = MakeToggle(LeftMargin, rows[3], visibility.WaterHidden,
-                v => { visibility.SetWater(v); Refresh(); });
-            MakeText("Hide water", LeftMargin + 36f, rows[3], 300f, 26f, 15, BodyColor, TextAnchor.MiddleLeft, gui.AveriaSerif);
+            waterToggle = MakeToggle(
+                LeftMargin,
+                rows[3],
+                visibility.WaterHidden,
+                v =>
+                {
+                    visibility.SetWater(v);
+                    Refresh();
+                }
+            );
+            MakeText(
+                "Hide water",
+                LeftMargin + 36f,
+                rows[3],
+                300f,
+                26f,
+                15,
+                BodyColor,
+                TextAnchor.MiddleLeft,
+                gui.AveriaSerif
+            );
 
             // categories section
-            MakeText("Categories (hide / show)", LeftMargin, rows[4], 350f, 24f, 16, gui.ValheimOrange, TextAnchor.MiddleLeft, gui.AveriaSerifBold);
+            MakeText(
+                "Categories (hide / show)",
+                LeftMargin,
+                rows[4],
+                350f,
+                24f,
+                16,
+                gui.ValheimOrange,
+                TextAnchor.MiddleLeft,
+                gui.AveriaSerifBold
+            );
 
             for (int i = 0; i < Categories.BuiltIn.Length; i++)
             {
@@ -242,32 +312,86 @@ namespace XRays
                 CategoryRow row = new CategoryRow
                 {
                     Category = category,
-                    Toggle = MakeToggle(LeftMargin, y, visibility.IsCategoryHidden(category.Key), v => OnCategoryToggle(category, v))
+                    Toggle = MakeToggle(
+                        LeftMargin,
+                        y,
+                        visibility.IsCategoryHidden(category.Key),
+                        v => OnCategoryToggle(category, v)
+                    )
                 };
-                row.Label = MakeText(category.Label, LeftMargin + 36f, y, 250f, 26f, 15, BodyColor, TextAnchor.MiddleLeft, gui.AveriaSerif);
-                row.Count = MakeText("0", RightMargin, y, 120f, 26f, 14, BodyColor, TextAnchor.MiddleRight, gui.AveriaSerif, true);
+                row.Label = MakeText(
+                    category.Label,
+                    LeftMargin + 36f,
+                    y,
+                    250f,
+                    26f,
+                    15,
+                    BodyColor,
+                    TextAnchor.MiddleLeft,
+                    gui.AveriaSerif
+                );
+                row.Count = MakeText(
+                    "0",
+                    RightMargin,
+                    y,
+                    120f,
+                    26f,
+                    14,
+                    BodyColor,
+                    TextAnchor.MiddleRight,
+                    gui.AveriaSerif,
+                    true
+                );
                 categoryRows.Add(row);
             }
 
             // hidden objects
             int last = 5 + Categories.BuiltIn.Length;
-            objectsText = MakeText("Hidden objects: 0", LeftMargin, rows[last], 260f, 30f, 14, BodyColor, TextAnchor.MiddleLeft, gui.AveriaSerif);
+            objectsText = MakeText(
+                "Hidden objects: 0",
+                LeftMargin,
+                rows[last],
+                260f,
+                30f,
+                14,
+                BodyColor,
+                TextAnchor.MiddleLeft,
+                gui.AveriaSerif
+            );
             Button restoreAll = MakeButton("Show all", RightMargin, rows[last], 170f, 30f);
             restoreAll.onClick.AddListener(OnRestoreAll);
 
             // help text
             string help = PluginHelpText();
-            MakeText(help, LeftMargin, rows[last + 1], 430f, 50f, 13, BodyColor, TextAnchor.MiddleLeft, gui.AveriaSerif);
+            MakeText(
+                help,
+                LeftMargin,
+                rows[last + 1],
+                430f,
+                50f,
+                13,
+                BodyColor,
+                TextAnchor.MiddleLeft,
+                gui.AveriaSerif
+            );
 
             return true;
         }
 
         private string PluginHelpText()
         {
-            return XRays.Instance.KeyPanel.Value + " : panel   ·   " + XRays.Instance.KeyTerrain.Value + " : terrain   ·   "
-                   + XRays.Instance.KeyWater.Value + " : water\n"
-                   + XRays.Instance.KeyPick.Value + " : hide object under cursor   ·   "
-                   + XRays.Instance.ModifierKey.Value + " + " + XRays.Instance.KeyPick.Value + " : whole category";
+            return XRays.Instance.KeyPanel.Value
+                + " : panel   ·   "
+                + XRays.Instance.KeyTerrain.Value
+                + " : terrain   ·   "
+                + XRays.Instance.KeyWater.Value
+                + " : water\n"
+                + XRays.Instance.KeyPick.Value
+                + " : hide object under cursor   ·   "
+                + XRays.Instance.ModifierKey.Value
+                + " + "
+                + XRays.Instance.KeyPick.Value
+                + " : whole category";
         }
 
         private void OnCategoryToggle(Category category, bool hidden)
@@ -284,7 +408,18 @@ namespace XRays
 
         // ---------------------------------------------------------------- elements
 
-        private Text MakeText(string content, float x, float y, float width, float height, int fontSize, Color color, TextAnchor alignment, Font font, bool rightAlign = false)
+        private Text MakeText(
+            string content,
+            float x,
+            float y,
+            float width,
+            float height,
+            int fontSize,
+            Color color,
+            TextAnchor alignment,
+            Font font,
+            bool rightAlign = false
+        )
         {
             GameObject go = GUIManager.Instance.CreateText(
                 content,
@@ -299,7 +434,8 @@ namespace XRays
                 Color.black,
                 width,
                 height,
-                false);
+                false
+            );
 
             RectTransform rect = go.GetComponent<RectTransform>();
             rect.pivot = rightAlign ? new Vector2(1f, 0.5f) : new Vector2(0f, 0.5f);
@@ -321,7 +457,8 @@ namespace XRays
                 new Vector2(0.5f, 1f),
                 Vector2.zero,
                 width,
-                height);
+                height
+            );
 
             RectTransform rect = go.GetComponent<RectTransform>();
             rect.pivot = new Vector2(1f, 0.5f);
@@ -334,7 +471,11 @@ namespace XRays
 
         private Toggle MakeToggle(float x, float y, bool initial, System.Action<bool> onChanged)
         {
-            GameObject go = GUIManager.Instance.CreateToggle(root.transform, ToggleSize, ToggleSize);
+            GameObject go = GUIManager.Instance.CreateToggle(
+                root.transform,
+                ToggleSize,
+                ToggleSize
+            );
 
             RectTransform rect = go.GetComponent<RectTransform>();
             rect.anchorMin = new Vector2(0.5f, 1f);

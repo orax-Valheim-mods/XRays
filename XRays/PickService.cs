@@ -48,7 +48,12 @@ namespace XRays
             }
 
             Ray ray = camera.ScreenPointToRay(GetPointerPosition());
-            RaycastHit[] hits = Physics.RaycastAll(ray, maxDistance, ~0, QueryTriggerInteraction.Ignore);
+            RaycastHit[] hits = Physics.RaycastAll(
+                ray,
+                maxDistance,
+                ~0,
+                QueryTriggerInteraction.Ignore
+            );
             if (hits.Length == 0)
             {
                 return null;
@@ -81,9 +86,10 @@ namespace XRays
 
                 // where it is: the object position, or the aimed point for terrain / water
                 result.Distance = hit.distance;
-                result.Position = result.Kind == PickKind.Object && result.Root != null
-                    ? result.Root.transform.position
-                    : hit.point;
+                result.Position =
+                    result.Kind == PickKind.Object && result.Root != null
+                        ? result.Root.transform.position
+                        : hit.point;
 
                 if (result.Kind == PickKind.Terrain)
                 {
@@ -215,8 +221,17 @@ namespace XRays
             Vector3 position = pick.Position;
             string prefix = pick.Kind == PickKind.Object ? "Pos" : "Hit";
 
-            return prefix + " (" + Format(position.x) + ", " + Format(position.y) + ", " + Format(position.z) + ")"
-                   + "  ·  " + Format(pick.Distance) + " m";
+            return prefix
+                + " ("
+                + Format(position.x)
+                + ", "
+                + Format(position.y)
+                + ", "
+                + Format(position.z)
+                + ")"
+                + "  ·  "
+                + Format(pick.Distance)
+                + " m";
         }
 
         private static string Format(float value)
@@ -234,12 +249,24 @@ namespace XRays
             {
                 if (current.GetComponent<Heightmap>() != null)
                 {
-                    return new PickResult { Kind = PickKind.Terrain, Root = current.gameObject, Name = "Terrain", MatchedType = typeof(Heightmap) };
+                    return new PickResult
+                    {
+                        Kind = PickKind.Terrain,
+                        Root = current.gameObject,
+                        Name = "Terrain",
+                        MatchedType = typeof(Heightmap)
+                    };
                 }
 
                 if (current.GetComponent<WaterVolume>() != null)
                 {
-                    return new PickResult { Kind = PickKind.Water, Root = current.gameObject, Name = "Water", MatchedType = typeof(WaterVolume) };
+                    return new PickResult
+                    {
+                        Kind = PickKind.Water,
+                        Root = current.gameObject,
+                        Name = "Water",
+                        MatchedType = typeof(WaterVolume)
+                    };
                 }
 
                 foreach (Category category in Categories.BuiltIn)
@@ -266,7 +293,10 @@ namespace XRays
                 }
 
                 // "object root" markers: network view or level of detail
-                if (current.GetComponent<ZNetView>() != null || current.GetComponent<LODGroup>() != null)
+                if (
+                    current.GetComponent<ZNetView>() != null
+                    || current.GetComponent<LODGroup>() != null
+                )
                 {
                     return ObjectResult(current);
                 }

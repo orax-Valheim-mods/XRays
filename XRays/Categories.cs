@@ -18,7 +18,8 @@ namespace XRays
         public Type[] Types;
         public bool SkipLocalPlayer;
 
-        public bool IsNameCategory => Key != null && Key.StartsWith(NameKeyPrefix, StringComparison.Ordinal);
+        public bool IsNameCategory =>
+            Key != null && Key.StartsWith(NameKeyPrefix, StringComparison.Ordinal);
 
         public string Name => IsNameCategory ? Key.Substring(NameKeyPrefix.Length) : Label;
 
@@ -40,18 +41,65 @@ namespace XRays
     {
         public static readonly Category[] BuiltIn =
         {
-            new Category { Key = "trees",     Label = "Trees",                 Types = new[] { typeof(TreeBase), typeof(TreeLog) } },
-            new Category { Key = "rocks",     Label = "Rocks / ore",           Types = new[] { typeof(MineRock5), typeof(MineRock) } },
-            new Category { Key = "pickable",  Label = "Pickable resources",    Types = new[] { typeof(Pickable), typeof(PickableItem) } },
-            new Category { Key = "build",     Label = "Build pieces",          Types = new[] { typeof(WearNTear), typeof(Piece) } },
-            new Category { Key = "creatures", Label = "Creatures",             Types = new[] { typeof(Character) }, SkipLocalPlayer = true },
-            new Category { Key = "items",     Label = "Ground items",          Types = new[] { typeof(ItemDrop) } },
-            new Category { Key = "plants",    Label = "Crops",                 Types = new[] { typeof(Plant) } },
-            new Category { Key = "spawners",  Label = "Spawners",              Types = new[] { typeof(CreatureSpawner) } },
-            new Category { Key = "clutter",   Label = "Grass / vegetation",    Types = new[] { typeof(ClutterSystem) } }
+            new Category
+            {
+                Key = "trees",
+                Label = "Trees",
+                Types = new[] { typeof(TreeBase), typeof(TreeLog) }
+            },
+            new Category
+            {
+                Key = "rocks",
+                Label = "Rocks / ore",
+                Types = new[] { typeof(MineRock5), typeof(MineRock) }
+            },
+            new Category
+            {
+                Key = "pickable",
+                Label = "Pickable resources",
+                Types = new[] { typeof(Pickable), typeof(PickableItem) }
+            },
+            new Category
+            {
+                Key = "build",
+                Label = "Build pieces",
+                Types = new[] { typeof(WearNTear), typeof(Piece) }
+            },
+            new Category
+            {
+                Key = "creatures",
+                Label = "Creatures",
+                Types = new[] { typeof(Character) },
+                SkipLocalPlayer = true
+            },
+            new Category
+            {
+                Key = "items",
+                Label = "Ground items",
+                Types = new[] { typeof(ItemDrop) }
+            },
+            new Category
+            {
+                Key = "plants",
+                Label = "Crops",
+                Types = new[] { typeof(Plant) }
+            },
+            new Category
+            {
+                Key = "spawners",
+                Label = "Spawners",
+                Types = new[] { typeof(CreatureSpawner) }
+            },
+            new Category
+            {
+                Key = "clutter",
+                Label = "Grass / vegetation",
+                Types = new[] { typeof(ClutterSystem) }
+            }
         };
 
-        private static readonly Dictionary<string, Category> Registry = new Dictionary<string, Category>();
+        private static readonly Dictionary<string, Category> Registry =
+            new Dictionary<string, Category>();
 
         static Categories()
         {
@@ -93,7 +141,12 @@ namespace XRays
             if (category.IsNameCategory)
             {
                 string wanted = category.Name;
-                foreach (UnityEngine.Object obj in UnityEngine.Object.FindObjectsByType(typeof(Transform), FindObjectsSortMode.None))
+                foreach (
+                    UnityEngine.Object obj in UnityEngine.Object.FindObjectsByType(
+                        typeof(Transform),
+                        FindObjectsSortMode.None
+                    )
+                )
                 {
                     Transform t = obj as Transform;
                     if (t == null || t.name != wanted)
@@ -117,7 +170,12 @@ namespace XRays
 
             foreach (Type type in category.Types)
             {
-                foreach (UnityEngine.Object obj in UnityEngine.Object.FindObjectsByType(type, FindObjectsSortMode.None))
+                foreach (
+                    UnityEngine.Object obj in UnityEngine.Object.FindObjectsByType(
+                        type,
+                        FindObjectsSortMode.None
+                    )
+                )
                 {
                     Component comp = obj as Component;
                     if (comp == null)
@@ -126,7 +184,11 @@ namespace XRays
                     }
 
                     Player player = comp as Player;
-                    if (category.SkipLocalPlayer && player != null && player == Player.m_localPlayer)
+                    if (
+                        category.SkipLocalPlayer
+                        && player != null
+                        && player == Player.m_localPlayer
+                    )
                     {
                         continue;
                     }

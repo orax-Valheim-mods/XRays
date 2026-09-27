@@ -28,9 +28,12 @@ namespace XRays
 
         private const float RefreshInterval = 0.75f;
 
-        private readonly Dictionary<int, Renderer> hiddenRenderers = new Dictionary<int, Renderer>();
-        private readonly Dictionary<int, RendererState> rendererStates = new Dictionary<int, RendererState>();
-        private readonly Dictionary<int, GameObject> individualObjects = new Dictionary<int, GameObject>();
+        private readonly Dictionary<int, Renderer> hiddenRenderers =
+            new Dictionary<int, Renderer>();
+        private readonly Dictionary<int, RendererState> rendererStates =
+            new Dictionary<int, RendererState>();
+        private readonly Dictionary<int, GameObject> individualObjects =
+            new Dictionary<int, GameObject>();
         private readonly HashSet<string> hiddenCategories = new HashSet<string>();
         private readonly HashSet<int> hiddenRoots = new HashSet<int>();
         private float refreshTimer;
@@ -38,7 +41,11 @@ namespace XRays
         public bool TerrainHidden { get; private set; }
         public bool WaterHidden { get; private set; }
 
-        public bool AnyActive => TerrainHidden || WaterHidden || hiddenCategories.Count > 0 || individualObjects.Count > 0;
+        public bool AnyActive =>
+            TerrainHidden
+            || WaterHidden
+            || hiddenCategories.Count > 0
+            || individualObjects.Count > 0;
 
         public int IndividualCount => individualObjects.Count;
 
@@ -218,7 +225,9 @@ namespace XRays
                 }
 
                 // Distant terrain (LOD), handled by a dedicated component
-                foreach (TerrainLod lod in Object.FindObjectsByType<TerrainLod>(FindObjectsSortMode.None))
+                foreach (
+                    TerrainLod lod in Object.FindObjectsByType<TerrainLod>(FindObjectsSortMode.None)
+                )
                 {
                     AddRenderers(lod != null ? lod.gameObject : null, wanted, waterIds);
                 }
@@ -329,7 +338,11 @@ namespace XRays
             return ids;
         }
 
-        private static void AddRenderers(GameObject go, Dictionary<int, Renderer> wanted, HashSet<int> excluded)
+        private static void AddRenderers(
+            GameObject go,
+            Dictionary<int, Renderer> wanted,
+            HashSet<int> excluded
+        )
         {
             if (go == null)
             {
@@ -390,7 +403,10 @@ namespace XRays
 
                 Renderer renderer = entry.Value;
                 hiddenRenderers[entry.Key] = renderer;
-                rendererStates[entry.Key] = new RendererState(renderer.enabled, renderer.forceRenderingOff);
+                rendererStates[entry.Key] = new RendererState(
+                    renderer.enabled,
+                    renderer.forceRenderingOff
+                );
                 renderer.enabled = false;
                 renderer.forceRenderingOff = true;
             }
