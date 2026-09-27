@@ -107,9 +107,6 @@ namespace XRays
 
         private Color BodyColor => new Color(0.93f, 0.88f, 0.79f, 1f);
 
-        /// <summary>Quieter colour, for the hints beside an option.</summary>
-        private Color HintColor => new Color(0.93f, 0.88f, 0.79f, 0.6f);
-
         /// <summary>Where the next element is created (header or content).</summary>
         private Transform Parent => container != null ? container : root.transform;
 
@@ -470,27 +467,15 @@ namespace XRays
                 OnRememberToggle
             );
             MakeText(
-                "Remember this setup",
+                "Remember this setup for the next launch",
                 LeftMargin + 36f,
                 rows[remember],
-                210f,
+                380f,
                 26f,
                 15,
                 BodyColor,
                 TextAnchor.MiddleLeft,
                 gui.AveriaSerif
-            );
-            MakeText(
-                "for the next launch",
-                RightMargin,
-                rows[remember],
-                150f,
-                26f,
-                13,
-                HintColor,
-                TextAnchor.MiddleRight,
-                gui.AveriaSerif,
-                true
             );
 
             // left to right: the reveal toggle, then the two global buttons
