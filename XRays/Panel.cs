@@ -93,6 +93,7 @@ namespace XRays
         private Toggle terrainToggle;
         private Toggle waterToggle;
         private Toggle cloudsToggle;
+        private Toggle mistToggle;
         private Toggle playerToggle;
         private Toggle hudToggle;
 
@@ -182,6 +183,7 @@ namespace XRays
             terrainToggle = null;
             waterToggle = null;
             cloudsToggle = null;
+            mistToggle = null;
             playerToggle = null;
             hudToggle = null;
             rememberToggle = null;
@@ -232,6 +234,7 @@ namespace XRays
             terrainToggle.SetIsOnWithoutNotify(visibility.TerrainHidden);
             waterToggle.SetIsOnWithoutNotify(visibility.WaterHidden);
             cloudsToggle.SetIsOnWithoutNotify(visibility.CloudsHidden);
+            mistToggle.SetIsOnWithoutNotify(visibility.MistHidden);
             playerToggle.SetIsOnWithoutNotify(visibility.PlayerHidden);
             hudToggle.SetIsOnWithoutNotify(visibility.HudHidden);
 
@@ -376,7 +379,7 @@ namespace XRays
             // a little air between that block and the options: it is also
             // where the longest descriptions spill when they run over their
             // own block, so nothing ever lands on the first toggle.
-            // World layers and own display: the five of them share one
+            // World layers and own display: the six of them share one
             // compact line, and drop on a second one when their labels do
             // not all fit in the width of the panel
             cursor += 10f;
@@ -507,7 +510,7 @@ namespace XRays
         }
 
         /// <summary>
-        /// The five world layer options (terrain, water, clouds, player,
+        /// The world layer options (terrain, water, clouds, mist, player,
         /// hud): they share one compact line and drop on a second one when
         /// their labels do not all fit in the width of the panel. Returns
         /// the cursor, moved past the block.
@@ -549,6 +552,16 @@ namespace XRays
                 ),
                 MakeLayerOption(
                     gui,
+                    "Mist",
+                    visibility.MistHidden,
+                    v =>
+                    {
+                        visibility.SetMist(v);
+                        Refresh();
+                    }
+                ),
+                MakeLayerOption(
+                    gui,
                     "Player",
                     visibility.PlayerHidden,
                     v =>
@@ -569,12 +582,13 @@ namespace XRays
                 )
             };
 
-            // the light refresh keeps its hands on those five toggles
+            // the light refresh keeps its hands on those six toggles
             terrainToggle = options[0].Toggle;
             waterToggle = options[1].Toggle;
             cloudsToggle = options[2].Toggle;
-            playerToggle = options[3].Toggle;
-            hudToggle = options[4].Toggle;
+            mistToggle = options[3].Toggle;
+            playerToggle = options[4].Toggle;
+            hudToggle = options[5].Toggle;
 
             float total = 0f;
             for (int i = 0; i < options.Length; i++)
@@ -583,7 +597,7 @@ namespace XRays
             }
 
             // one line when everything fits, otherwise half of the options
-            // per line (three then two with the five of them)
+            // per line (three then three with the six of them)
             int firstLine = total <= LayerLineWidth ? options.Length : (options.Length + 1) / 2;
 
             float line = -(top + LayerRowHeight / 2f);
@@ -824,6 +838,8 @@ namespace XRays
                 + " : water   ·   "
                 + XRays.Instance.KeyClouds.Value
                 + " : clouds\n"
+                + XRays.Instance.KeyMist.Value
+                + " : mist   ·   "
                 + XRays.Instance.KeyPlayer.Value
                 + " : player   ·   "
                 + XRays.Instance.KeyReveal.Value

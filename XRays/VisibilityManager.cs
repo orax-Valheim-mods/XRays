@@ -59,9 +59,19 @@ namespace XRays
         private float enemyHudAlpha = 1f;
         private bool enemyHudRaycasts = true;
 
+        /// <summary>
+        /// The distance fog taken away by the mist option: whether the mod
+        /// holds it, and what it had before that.
+        /// </summary>
+        private bool fogTaken;
+        private bool fogOriginal = true;
+
         public bool TerrainHidden { get; private set; }
         public bool WaterHidden { get; private set; }
         public bool CloudsHidden { get; private set; }
+
+        /// <summary>The mist and the fog, down to the distance fog of the game.</summary>
+        public bool MistHidden { get; private set; }
 
         /// <summary>Your own character (the other players belong to the Creatures category).</summary>
         public bool PlayerHidden { get; private set; }
@@ -70,6 +80,7 @@ namespace XRays
             TerrainHidden
             || WaterHidden
             || CloudsHidden
+            || MistHidden
             || PlayerHidden
             || hiddenCategories.Count > 0
             || individualObjects.Count > 0;
@@ -150,6 +161,27 @@ namespace XRays
         }
 
         public void ToggleClouds() => SetClouds(!CloudsHidden);
+
+        // ---------------------------------------------------------------- mist
+
+        /// <summary>
+        /// Hides the mist and the fog: the layers of the environment named
+        /// after them (ground mist, weather fog, distant fog planes, ocean
+        /// mist), the mist systems the game runs itself, and the distance
+        /// fog of the game, which is only turned off while the option is on.
+        /// </summary>
+        public void SetMist(bool hidden)
+        {
+            if (MistHidden == hidden)
+            {
+                return;
+            }
+
+            MistHidden = hidden;
+            Reconcile();
+        }
+
+        public void ToggleMist() => SetMist(!MistHidden);
 
         // ---------------------------------------------------------------- player
 
@@ -292,6 +324,7 @@ namespace XRays
             TerrainHidden = false;
             WaterHidden = false;
             CloudsHidden = false;
+            MistHidden = false;
             PlayerHidden = false;
             hiddenCategories.Clear();
             individualObjects.Clear();
@@ -301,15 +334,16 @@ namespace XRays
 
         /// <summary>
         /// Hides everything the panel can hide (the reverse of RestoreAll):
-        /// terrain, water, clouds, your own character, the HUD and every
-        /// known category. The objects picked one by one are already hidden,
-        /// they need nothing.
+        /// terrain, water, clouds, mist, your own character, the HUD and
+        /// every known category. The objects picked one by one are already
+        /// hidden, they need nothing.
         /// </summary>
         public void HideAll()
         {
             TerrainHidden = true;
             WaterHidden = true;
             CloudsHidden = true;
+            MistHidden = true;
             PlayerHidden = true;
 
             foreach (Category category in Categories.All)
@@ -332,7 +366,7 @@ namespace XRays
         /// category slots follow them, in panel order: that layout is the
         /// state the reveal toggle and the remembered setup both work with.
         /// </summary>
-        public const int WorldOptionCount = 5;
+        public const int WorldOptionCount = 6;
 
         /// <summary>
         /// The options checked when the reveal started (the flags then one
@@ -349,7 +383,14 @@ namespace XRays
         {
             get
             {
-                if (TerrainHidden || WaterHidden || CloudsHidden || PlayerHidden || HudHidden)
+                if (
+                    TerrainHidden
+                    || WaterHidden
+                    || CloudsHidden
+                    || MistHidden
+                    || PlayerHidden
+                    || HudHidden
+                )
                 {
                     return true;
                 }
@@ -398,8 +439,8 @@ namespace XRays
         }
 
         /// <summary>
-        /// Current state of every panel option, in panel order: the five
-        /// world flags then one slot per category. It is also the shape the
+        /// Current state of every panel option, in panel order: the world
+        /// flags then one slot per category. It is also the shape the
         /// remembered setup is stored in for the next launch.
         /// </summary>
         public bool[] CaptureOptions()
@@ -408,8 +449,9 @@ namespace XRays
             state[0] = TerrainHidden;
             state[1] = WaterHidden;
             state[2] = CloudsHidden;
-            state[3] = PlayerHidden;
-            state[4] = HudHidden;
+            state[3] = MistHidden;
+            state[4] = PlayerHidden;
+            state[5] = HudHidden;
 
             for (int i = 0; i < Categories.BuiltIn.Length; i++)
             {
@@ -430,11 +472,12 @@ namespace XRays
             TerrainHidden = state[0];
             WaterHidden = state[1];
             CloudsHidden = state[2];
-            PlayerHidden = state[3];
+            MistHidden = state[3];
+            PlayerHidden = state[4];
 
-            if (HudHidden != state[4])
+            if (HudHidden != state[5])
             {
-                HudHidden = state[4];
+                HudHidden = state[5];
                 ApplyHud();
             }
 
@@ -567,6 +610,40 @@ namespace XRays
                 }
             }
 
+            if (MistHidden)
+            {
+                foreach (GameObject root in CollectMistRoots())
+                {
+                    AddRenderers(root, wanted, wantedInstances, null);
+                }
+
+                // the mist systems the game runs itself, wherever they sit:
+                // they are not children of the environment, they follow the
+                // player or the biome they belong to
+                foreach (
+                    MistEmitter emitter in UnityEngine.Object.FindObjectsByType<MistEmitter>(
+                        FindObjectsSortMode.None
+                    )
+                )
+                {
+                    AddRenderers(emitter.gameObject, wanted, wantedInstances, null);
+
+                    if (emitter.m_psystem != null)
+                    {
+                        AddWanted(emitter.m_psystem.GetComponent<Renderer>(), wanted);
+                    }
+                }
+
+                foreach (
+                    ParticleMist mist in UnityEngine.Object.FindObjectsByType<ParticleMist>(
+                        FindObjectsSortMode.None
+                    )
+                )
+                {
+                    AddRenderers(mist.gameObject, wanted, wantedInstances, null);
+                }
+            }
+
             if (PlayerHidden)
             {
                 // your own character: body, armor and the held item. Resolved
@@ -616,6 +693,7 @@ namespace XRays
 
             Apply(wanted, wantedInstances);
             ApplyEnemyHud();
+            ApplyFog();
         }
 
         // ---------------------------------------------------------------- internals
@@ -876,6 +954,74 @@ namespace XRays
                 {
                     CollectCloudRoots(child, result);
                 }
+            }
+        }
+
+        /// <summary>
+        /// The mist and the fog of the environment, at any depth: the ground
+        /// mist, the weather fog, the distant fog planes and the ocean mist
+        /// are all named after them.
+        /// </summary>
+        private static IEnumerable<GameObject> CollectMistRoots()
+        {
+            List<GameObject> result = new List<GameObject>();
+            EnvMan env = EnvMan.instance;
+
+            if (env == null)
+            {
+                return result;
+            }
+
+            CollectMistRoots(env.transform, result);
+            return result;
+        }
+
+        /// <summary>The children named after a mist or a fog, branches taken whole.</summary>
+        private static void CollectMistRoots(Transform parent, List<GameObject> result)
+        {
+            foreach (Transform child in parent)
+            {
+                if (child == null)
+                {
+                    continue;
+                }
+
+                if (
+                    child.name.IndexOf("mist", StringComparison.OrdinalIgnoreCase) >= 0
+                    || child.name.IndexOf("fog", StringComparison.OrdinalIgnoreCase) >= 0
+                )
+                {
+                    result.Add(child.gameObject);
+                }
+                else
+                {
+                    CollectMistRoots(child, result);
+                }
+            }
+        }
+
+        /// <summary>
+        /// The distance fog of the game: off while the mist option is on,
+        /// put back exactly as it was after. What it was is memorised the
+        /// first time the option takes it away, so the value of the moment
+        /// is the one that comes back.
+        /// </summary>
+        private void ApplyFog()
+        {
+            if (MistHidden)
+            {
+                if (!fogTaken)
+                {
+                    fogOriginal = RenderSettings.fog;
+                    fogTaken = true;
+                }
+
+                RenderSettings.fog = false;
+            }
+            else if (fogTaken)
+            {
+                RenderSettings.fog = fogOriginal;
+                fogTaken = false;
             }
         }
 

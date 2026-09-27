@@ -1,15 +1,16 @@
 # XRays — X-Ray vision
 
-Hides the terrain, the water, the clouds or world elements so you can see
-through them: trees, rocks, resources, build pieces, creatures, ground items,
-etc.
+Hides the terrain, the water, the clouds, the mist or world elements so you
+can see through them: trees, rocks, resources, build pieces, creatures,
+ground items, etc.
 
 Two ways to use it:
 
 * **The control panel** (vanilla woodpanel via Jötunn): one single list of
-  options — the terrain, the water, the clouds, your own character and the
-  HUD share one compact line (a second one when their labels do not fit
-  side by side), then a checkbox per category — with loaded-object counters,
+  options — the terrain, the water, the clouds, the mist, your own character
+  and the HUD share one compact line (a second one when their labels do not
+  fit side by side), then a checkbox per category — with loaded-object
+  counters,
   a row that keeps the whole setup for the next launch, and three global
   buttons: **Reveal** (shows everything the checked options
   were hiding, the next press turns it into **Restore** and brings that exact
@@ -36,6 +37,7 @@ Two ways to use it:
 | `F7` | Hides / shows the **terrain** |
 | `F10` | Hides / shows the **water** (zones and the sea on the horizon) |
 | `F6` | Hides / shows the **clouds** of the sky (planes, horizon cylinder, particle clouds) |
+| `Home` | Hides / shows the **mist** and the fog (ground mist, weather fog, distant fog planes, distance fog) |
 | `F4` | Hides / shows **your own character** (body, armor and held item) |
 | `F3` | Hides / shows the **HUD** (bars, hot bar, mini map, crosshair, hints) |
 | `F9` | Hides / shows **the object under the cursor** |
@@ -63,13 +65,20 @@ Two ways to use it:
   sits in its tree: the big planes and the horizon cylinder at its top level,
   but also the particle clouds and the distant mist clouds, which live deeper
   inside it and used to stay on screen.
+* **Mist** takes the fog away: the layers of the environment named after a
+  mist or a fog (ground mist, weather fog, distant fog planes, ocean mist),
+  the mist systems the game runs itself — the Mistlands mist included — and
+  the distance fog of the game, which stays off while the option is on and
+  comes back exactly as it was when it is unticked. A few layers carry both
+  names (`FogClouds`, `mistcloud`): the **Clouds** option and the **Mist**
+  option both take them, so they disappear with either of the two.
 * The reveal / restore toggle (its button and its hotkey) only deals with the
   options of the list: the objects hidden one by one with `F9` and the
   categories only known under their name keep their state, and anything ticked
   by hand while the reveal is on is kept when the setup comes back. **Hide
   all** forgets that setup, it replaces it with "everything".
 * **Remember this setup** (the row under the counters, `Setup` → `Remember
-  setup` in the config) keeps the very list of the panel — the five world
+  setup` in the config) keeps the very list of the panel — the world
   options and the ticked categories — and checks those options again the
   next time the game starts. While the toggle is on the setup is written
   back on every change, so the panel, the hotkeys and **Hide all** / **Show
@@ -188,6 +197,7 @@ launch, also editable in game through Jötunn's ConfigManager):
 | `Hotkeys` | `Terrain` | `F7` | Hides / shows the terrain |
 | `Hotkeys` | `Water` | `F10` | Hides / shows the water |
 | `Hotkeys` | `Clouds` | `F6` | Hides / shows the clouds (planes, horizon cylinder, particle clouds) |
+| `Hotkeys` | `Mist` | `Home` | Hides / shows the mist and the fog, and the distance fog of the game (the game already uses `F1`, `F2`, `F3`, `F9` and `F11`) |
 | `Hotkeys` | `Player` | `F4` | Hides / shows your own character (the Creatures category never includes it) |
 | `Hotkeys` | `HUD` | `F3` | Hides / shows the HUD (the game's own `Ctrl` + `F3` does the same) |
 | `Hotkeys` | `Pick` | `F9` | Hides / shows the object under the cursor |
@@ -197,7 +207,7 @@ launch, also editable in game through Jötunn's ConfigManager):
 | `Display` | `Panel height` | `640` | Vertical size of the panel (360 to 1200 pixels); the rows scroll when they do not fit in it |
 | `Logging` | `Log cursor info` | `false` | Logs the panel's "Under the cursor" text, only while the panel is on screen |
 | `Setup` | `Remember setup` | `false` | Keeps the options checked in the panel and checks them again on the next launch (same thing as the **Remember this setup** row of the panel) |
-| `Setup` | `Saved setup` | _empty_ | The options kept for the next launch, as a comma separated list of names (`terrain`, `water`, `clouds`, `player`, `hud` and the category keys). Filled in by the panel; edited by hand only to force a setup |
+| `Setup` | `Saved setup` | _empty_ | The options kept for the next launch, as a comma separated list of names (`terrain`, `water`, `clouds`, `mist`, `player`, `hud` and the category keys). Filled in by the panel; edited by hand only to force a setup |
 
 ### Logging the cursor info
 

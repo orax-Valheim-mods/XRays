@@ -29,6 +29,7 @@ namespace XRays
         internal ConfigEntry<KeyCode> KeyTerrain;
         internal ConfigEntry<KeyCode> KeyWater;
         internal ConfigEntry<KeyCode> KeyClouds;
+        internal ConfigEntry<KeyCode> KeyMist;
         internal ConfigEntry<KeyCode> KeyPlayer;
         internal ConfigEntry<KeyCode> KeyHud;
         internal ConfigEntry<KeyCode> KeyPick;
@@ -56,12 +57,13 @@ namespace XRays
         /// <summary>How often the remembered setup is written back (while it is on).</summary>
         private const float SetupSyncInterval = 0.5f;
 
-        /// <summary>Names of the five world options, in panel order.</summary>
+        /// <summary>Names of the world options, in panel order.</summary>
         private static readonly string[] WorldOptionNames =
         {
             "terrain",
             "water",
             "clouds",
+            "mist",
             "player",
             "hud"
         };
@@ -111,6 +113,12 @@ namespace XRays
                 "Clouds",
                 KeyCode.F6,
                 "Hide / show the clouds in the sky (planes, horizon cylinder, particle clouds)."
+            );
+            KeyMist = Config.Bind(
+                "Hotkeys",
+                "Mist",
+                KeyCode.Home,
+                "Hide / show the mist and the fog (ground mist, weather fog, distant fog planes, Mistlands mist) and the distance fog of the game. Home by default: the game already takes F1, F2, F3, F9 and F11, and F5 opens its console."
             );
             KeyPlayer = Config.Bind(
                 "Hotkeys",
@@ -173,7 +181,7 @@ namespace XRays
                 "Setup",
                 "Saved setup",
                 "",
-                "The options kept for the next launch, written as their names (terrain, water, clouds, player, hud and the category keys, comma separated). Filled in by the panel: edited by hand only to force a setup."
+                "The options kept for the next launch, written as their names (terrain, water, clouds, mist, player, hud and the category keys, comma separated). Filled in by the panel: edited by hand only to force a setup."
             );
 
             Visibility = new VisibilityManager();
@@ -273,6 +281,11 @@ namespace XRays
                         ToggleClouds();
                     }
 
+                    if (Hotkey(KeyMist, blocked))
+                    {
+                        ToggleMist();
+                    }
+
                     if (Hotkey(KeyPlayer, blocked))
                     {
                         TogglePlayer();
@@ -329,6 +342,12 @@ namespace XRays
         {
             Visibility.ToggleClouds();
             Notify(Visibility.CloudsHidden ? "Clouds hidden" : "Clouds shown");
+        }
+
+        internal void ToggleMist()
+        {
+            Visibility.ToggleMist();
+            Notify(Visibility.MistHidden ? "Mist hidden" : "Mist shown");
         }
 
         internal void TogglePlayer()
@@ -523,8 +542,8 @@ namespace XRays
         }
 
         /// <summary>
-        /// Builds the option state back from those names: the five world
-        /// flags first, then one slot per built-in category. A name that no
+        /// Builds the option state back from those names: the world flags
+        /// first, then one slot per built-in category. A name that no
         /// longer means anything here is ignored, a category without a name
         /// in the list starts unchecked.
         /// </summary>
