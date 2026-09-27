@@ -26,6 +26,15 @@ namespace XRays
         public string[] NameContains;
 
         /// <summary>
+        /// Case-insensitive prefixes matched against the object name. Every
+        /// spawner prefab is named "Spawner_...", which catches the ones
+        /// carrying no known game component (a modded spawner for example)
+        /// without claiming the effects and the model pieces whose name
+        /// merely contains that word.
+        /// </summary>
+        public string[] NameStartsWith;
+
+        /// <summary>
         /// Roots the mod finds on its own, for the objects that carry no game
         /// component at all: the clutter below the grass root of the
         /// ClutterSystem for example.
@@ -41,12 +50,14 @@ namespace XRays
 
         /// <summary>Does the category need an object-name scan to list its objects?</summary>
         public bool HasNameMatch =>
-            IsNameCategory || (NameContains != null && NameContains.Length > 0);
+            IsNameCategory
+            || (NameContains != null && NameContains.Length > 0)
+            || (NameStartsWith != null && NameStartsWith.Length > 0);
 
         /// <summary>
         /// Does that object belong to the category according to its name?
-        /// Exact match for the categories created "by name", substring match
-        /// for the built-in ones.
+        /// Exact match for the categories created "by name", prefix match and
+        /// substring match for the built-in ones.
         /// </summary>
         public bool MatchesName(string objectName)
         {
@@ -60,6 +71,11 @@ namespace XRays
                 return string.Equals(objectName, Name, StringComparison.Ordinal);
             }
 
+            if (HasPrefix(objectName))
+            {
+                return true;
+            }
+
             if (NameContains == null)
             {
                 return false;
@@ -70,6 +86,27 @@ namespace XRays
                 if (
                     !string.IsNullOrEmpty(pattern)
                     && objectName.IndexOf(pattern, StringComparison.OrdinalIgnoreCase) >= 0
+                )
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool HasPrefix(string objectName)
+        {
+            if (NameStartsWith == null)
+            {
+                return false;
+            }
+
+            foreach (string prefix in NameStartsWith)
+            {
+                if (
+                    !string.IsNullOrEmpty(prefix)
+                    && objectName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
                 )
                 {
                     return true;
@@ -158,7 +195,22 @@ namespace XRays
             {
                 Key = "spawners",
                 Label = "Spawners",
-                Types = new[] { typeof(CreatureSpawner) }
+                // the one-shot spawners, the nests / piles / evil hearts
+                // (SpawnArea) and the holes that open on approach
+                // (TriggerSpawner). SpawnSystem is on the zone controller,
+                // never on a spawner itself, and the fire / smoke spawners
+                // are effects: neither belongs here.
+                Types = new[]
+                {
+                    typeof(CreatureSpawner),
+                    typeof(SpawnArea),
+                    typeof(TriggerSpawner)
+                },
+                // a spawner carrying no known component (a modded one, or the
+                // Elaking hole): every one of those prefabs is named
+                // "Spawner...", taken from the start so the model pieces and
+                // the effects whose name only contains that word stay out
+                NameStartsWith = new[] { "spawner" }
             },
             new Category
             {

@@ -244,7 +244,7 @@ namespace XRays
                 list = string.Join(", ", names);
             }
 
-            if (category.NameContains != null && category.NameContains.Length > 0)
+            if (category.HasNameMatch)
             {
                 list += " + names";
             }
