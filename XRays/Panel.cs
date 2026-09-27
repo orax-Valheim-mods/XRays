@@ -95,6 +95,10 @@ namespace XRays
         private Toggle cloudsToggle;
         private Toggle playerToggle;
         private Toggle hudToggle;
+
+        /// <summary>The "Remember this setup" row (persisted options).</summary>
+        private Toggle rememberToggle;
+
         private Button revealButton;
         private Text cursorText;
         private Text objectsText;
@@ -102,6 +106,9 @@ namespace XRays
         private float countTimer;
 
         private Color BodyColor => new Color(0.93f, 0.88f, 0.79f, 1f);
+
+        /// <summary>Quieter colour, for the hints beside an option.</summary>
+        private Color HintColor => new Color(0.93f, 0.88f, 0.79f, 0.6f);
 
         /// <summary>Where the next element is created (header or content).</summary>
         private Transform Parent => container != null ? container : root.transform;
@@ -180,6 +187,7 @@ namespace XRays
             cloudsToggle = null;
             playerToggle = null;
             hudToggle = null;
+            rememberToggle = null;
             revealButton = null;
             cursorText = null;
             objectsText = null;
@@ -229,6 +237,10 @@ namespace XRays
             cloudsToggle.SetIsOnWithoutNotify(visibility.CloudsHidden);
             playerToggle.SetIsOnWithoutNotify(visibility.PlayerHidden);
             hudToggle.SetIsOnWithoutNotify(visibility.HudHidden);
+
+            // the config entry may have been changed from outside (config
+            // manager), the row follows it
+            rememberToggle.SetIsOnWithoutNotify(plugin.RememberSetup.Value);
 
             foreach (CategoryRow row in categoryRows)
             {
@@ -297,7 +309,7 @@ namespace XRays
             // the title belongs to the fixed header, the rest scrolls. The
             // rows below the world layers are computed once that block has
             // measured itself, since it takes one line or two.
-            float[] rows = new float[5 + Categories.BuiltIn.Length];
+            float[] rows = new float[6 + Categories.BuiltIn.Length];
             rows[0] = Row(44f); // title (header)
             headerHeight = cursor + 16f; // margins of the header, then the viewport
 
@@ -374,8 +386,9 @@ namespace XRays
             }
 
             rows[2 + Categories.BuiltIn.Length] = Row(30f); // hidden objects
-            rows[3 + Categories.BuiltIn.Length] = Row(34f); // global buttons
-            rows[4 + Categories.BuiltIn.Length] = Row(100f); // help text (5 lines)
+            rows[3 + Categories.BuiltIn.Length] = Row(26f); // remembered setup
+            rows[4 + Categories.BuiltIn.Length] = Row(34f); // global buttons
+            rows[5 + Categories.BuiltIn.Length] = Row(100f); // help text (5 lines)
             contentHeight = cursor + 16f;
 
             // the rows are known: the scrolling content gets its height
@@ -423,9 +436,11 @@ namespace XRays
                 categoryRows.Add(row);
             }
 
-            // the hidden objects counter, then the three global buttons
+            // the hidden objects counter, the remembered setup, then the
+            // three global buttons
             int counter = 2 + Categories.BuiltIn.Length;
-            int actions = counter + 1;
+            int remember = counter + 1;
+            int actions = remember + 1;
             int helpRow = actions + 1;
 
             objectsText = MakeText(
@@ -438,6 +453,38 @@ namespace XRays
                 BodyColor,
                 TextAnchor.MiddleLeft,
                 gui.AveriaSerif
+            );
+
+            // the setup kept for the next launch: shaped like a category row
+            // so the whole list stays one single list of options
+            rememberToggle = MakeToggle(
+                LeftMargin,
+                rows[remember],
+                plugin.RememberSetup.Value,
+                OnRememberToggle
+            );
+            MakeText(
+                "Remember this setup",
+                LeftMargin + 36f,
+                rows[remember],
+                210f,
+                26f,
+                15,
+                BodyColor,
+                TextAnchor.MiddleLeft,
+                gui.AveriaSerif
+            );
+            MakeText(
+                "for the next launch",
+                RightMargin,
+                rows[remember],
+                150f,
+                26f,
+                13,
+                HintColor,
+                TextAnchor.MiddleRight,
+                gui.AveriaSerif,
+                true
             );
 
             // left to right: the reveal toggle, then the two global buttons
@@ -802,6 +849,15 @@ namespace XRays
         {
             visibility.SetCategory(category, hidden);
             Refresh();
+        }
+
+        /// <summary>
+        /// Keeps (or drops) the checked options for the next launch: the row
+        /// only writes the config entry, the plugin does the storing.
+        /// </summary>
+        private void OnRememberToggle(bool remember)
+        {
+            plugin.SetRememberSetup(remember);
         }
 
         private void OnRestoreAll()

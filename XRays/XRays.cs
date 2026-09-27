@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
@@ -39,8 +41,30 @@ namespace XRays
 
         internal ConfigEntry<bool> LogCursorInfo;
 
+        /// <summary>
+        /// Panel toggle: keep the checked options for the next launch (the
+        /// setup itself lives in the entry below).
+        /// </summary>
+        internal ConfigEntry<bool> RememberSetup;
+
+        /// <summary>The options kept for the next launch, as a list of names.</summary>
+        internal ConfigEntry<string> SavedSetup;
+
         /// <summary>How often the "Under the cursor" info is sampled for logging.</summary>
         private const float CursorLogInterval = 0.4f;
+
+        /// <summary>How often the remembered setup is written back (while it is on).</summary>
+        private const float SetupSyncInterval = 0.5f;
+
+        /// <summary>Names of the five world options, in panel order.</summary>
+        private static readonly string[] WorldOptionNames =
+        {
+            "terrain",
+            "water",
+            "clouds",
+            "player",
+            "hud"
+        };
 
         /// <summary>
         /// The game opens its own pause menu on Escape: for a short moment
@@ -51,6 +75,7 @@ namespace XRays
 
         private float menuSuppressTimer;
         private float cursorLogTimer;
+        private float setupSyncTimer;
         private string lastCursorLog;
 
         private void Awake()
@@ -138,9 +163,23 @@ namespace XRays
                 false,
                 "Write the \"Under the cursor\" info (the exact text shown in the panel) to the BepInEx log while the panel is open, whenever it changes."
             );
+            RememberSetup = Config.Bind(
+                "Setup",
+                "Remember setup",
+                false,
+                "Keep the options checked in the panel and check them again the next time the game starts. The \"Remember this setup\" toggle of the panel does the same thing."
+            );
+            SavedSetup = Config.Bind(
+                "Setup",
+                "Saved setup",
+                "",
+                "The options kept for the next launch, written as their names (terrain, water, clouds, player, hud and the category keys, comma separated). Filled in by the panel: edited by hand only to force a setup."
+            );
 
             Visibility = new VisibilityManager();
             Panel = new Panel(this, Visibility);
+
+            RestoreRememberedSetup();
 
             GUIManager.OnCustomGUIAvailable += OnCustomGuiAvailable;
 
@@ -171,6 +210,7 @@ namespace XRays
             if (Visibility != null)
             {
                 Visibility.Tick(deltaTime);
+                SyncRememberedSetup(deltaTime);
             }
 
             bool consoleBlocked = Blocked();
@@ -385,6 +425,150 @@ namespace XRays
                     + ": "
                     + (!wasHidden ? "hidden (" + count + ")" : "shown (" + count + ")")
             );
+        }
+
+        // ------------------------------------------------------------------
+        // Remembered setup
+        // ------------------------------------------------------------------
+
+        /// <summary>
+        /// Called by the panel toggle (and by the config entry it mirrors):
+        /// while it is on, the options checked in the panel are written back
+        /// to the config so the next launch starts from them. Turning it on
+        /// stores the setup of the moment right away, so leaving the game
+        /// just after that keeps it too.
+        /// </summary>
+        internal void SetRememberSetup(bool remember)
+        {
+            RememberSetup.Value = remember;
+
+            if (remember)
+            {
+                StoreRememberedSetup();
+            }
+        }
+
+        /// <summary>
+        /// Puts the stored options back at startup, when the toggle was left
+        /// on. The state is rebuilt name by name, so the options and the
+        /// categories that did not exist when it was stored simply start
+        /// unchecked, and the ones that were removed are dropped.
+        /// </summary>
+        private void RestoreRememberedSetup()
+        {
+            if (!RememberSetup.Value || string.IsNullOrEmpty(SavedSetup.Value))
+            {
+                return;
+            }
+
+            Visibility.ApplyOptions(DeserializeSetup(SavedSetup.Value));
+            Logger.LogInfo("Remembered setup restored: " + SavedSetup.Value);
+        }
+
+        /// <summary>
+        /// Keeps the stored setup in step with the panel while the toggle is
+        /// on. The state is sampled rather than written on every change, and
+        /// only when the list of names really differs: BepInEx writes the
+        /// config file itself as soon as an entry gets a new value, so a
+        /// quiet option never touches the disk.
+        /// </summary>
+        private void SyncRememberedSetup(float deltaTime)
+        {
+            if (!RememberSetup.Value)
+            {
+                setupSyncTimer = 0f;
+                return;
+            }
+
+            setupSyncTimer += deltaTime;
+            if (setupSyncTimer < SetupSyncInterval)
+            {
+                return;
+            }
+
+            setupSyncTimer = 0f;
+            StoreRememberedSetup();
+        }
+
+        private void StoreRememberedSetup()
+        {
+            string value = SerializeSetup();
+            if (!string.Equals(value, SavedSetup.Value, StringComparison.Ordinal))
+            {
+                SavedSetup.Value = value;
+            }
+        }
+
+        /// <summary>The checked options, as the names the config stores.</summary>
+        private string SerializeSetup()
+        {
+            bool[] state = Visibility.CaptureOptions();
+            List<string> names = new List<string>(state.Length);
+
+            for (int i = 0; i < state.Length; i++)
+            {
+                if (!state[i])
+                {
+                    continue;
+                }
+
+                string name = OptionNameAt(i);
+                if (name != null)
+                {
+                    names.Add(name);
+                }
+            }
+
+            return string.Join(",", names.ToArray());
+        }
+
+        /// <summary>
+        /// Builds the option state back from those names: the five world
+        /// flags first, then one slot per built-in category. A name that no
+        /// longer means anything here is ignored, a category without a name
+        /// in the list starts unchecked.
+        /// </summary>
+        private bool[] DeserializeSetup(string value)
+        {
+            bool[] state = new bool[VisibilityManager.WorldOptionCount + Categories.BuiltIn.Length];
+
+            if (string.IsNullOrEmpty(value))
+            {
+                return state;
+            }
+
+            HashSet<string> names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string part in value.Split(','))
+            {
+                string name = part.Trim();
+                if (name.Length > 0)
+                {
+                    names.Add(name);
+                }
+            }
+
+            for (int i = 0; i < state.Length; i++)
+            {
+                string name = OptionNameAt(i);
+                state[i] = name != null && names.Contains(name);
+            }
+
+            return state;
+        }
+
+        /// <summary>
+        /// Name of the option at that slot (the world flags, then the
+        /// categories in panel order), null when the slot does not exist.
+        /// </summary>
+        private string OptionNameAt(int index)
+        {
+            if (index < VisibilityManager.WorldOptionCount)
+            {
+                return index < WorldOptionNames.Length ? WorldOptionNames[index] : null;
+            }
+
+            int category = index - VisibilityManager.WorldOptionCount;
+            return category < Categories.BuiltIn.Length ? Categories.BuiltIn[category].Key : null;
         }
 
         // ------------------------------------------------------------------

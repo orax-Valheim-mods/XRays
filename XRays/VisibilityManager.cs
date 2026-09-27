@@ -327,8 +327,12 @@ namespace XRays
 
         // ---------------------------------------------------------------- reveal toggle
 
-        /// <summary>How many of the options are plain world / own display flags.</summary>
-        private const int WorldOptionCount = 5;
+        /// <summary>
+        /// How many of the options are plain world / own display flags. The
+        /// category slots follow them, in panel order: that layout is the
+        /// state the reveal toggle and the remembered setup both work with.
+        /// </summary>
+        public const int WorldOptionCount = 5;
 
         /// <summary>
         /// The options checked when the reveal started (the flags then one
@@ -393,8 +397,12 @@ namespace XRays
             ApplyOptions(target);
         }
 
-        /// <summary>Current state of every panel option, in panel order.</summary>
-        private bool[] CaptureOptions()
+        /// <summary>
+        /// Current state of every panel option, in panel order: the five
+        /// world flags then one slot per category. It is also the shape the
+        /// remembered setup is stored in for the next launch.
+        /// </summary>
+        public bool[] CaptureOptions()
         {
             bool[] state = new bool[WorldOptionCount + Categories.BuiltIn.Length];
             state[0] = TerrainHidden;
@@ -411,8 +419,13 @@ namespace XRays
             return state;
         }
 
-        /// <summary>Puts the panel options in the given state, in one pass.</summary>
-        private void ApplyOptions(bool[] state)
+        /// <summary>
+        /// Puts the panel options in the given state, in one pass: the state
+        /// the reveal toggle brings back, and the one the config restores on
+        /// the next launch (it is rebuilt with the categories of the moment,
+        /// so a category added since then simply starts unchecked).
+        /// </summary>
+        public void ApplyOptions(bool[] state)
         {
             TerrainHidden = state[0];
             WaterHidden = state[1];

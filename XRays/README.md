@@ -9,8 +9,9 @@ Two ways to use it:
 * **The control panel** (vanilla woodpanel via Jötunn): one single list of
   options — the terrain, the water, the clouds, your own character and the
   HUD share one compact line (a second one when their labels do not fit
-  side by side), then a checkbox per category — with loaded-object counters
-  and three global buttons: **Reveal** (shows everything the checked options
+  side by side), then a checkbox per category — with loaded-object counters,
+  a row that keeps the whole setup for the next launch, and three global
+  buttons: **Reveal** (shows everything the checked options
   were hiding, the next press turns it into **Restore** and brings that exact
   setup back — with nothing checked the first press checks every option
   instead), **Hide all** (everything in that list at once) and **Show all**
@@ -63,6 +64,15 @@ Two ways to use it:
   categories only known under their name keep their state, and anything ticked
   by hand while the reveal is on is kept when the setup comes back. **Hide
   all** forgets that setup, it replaces it with "everything".
+* **Remember this setup** (the row under the counters, `Setup` → `Remember
+  setup` in the config) keeps the very list of the panel — the five world
+  options and the ticked categories — and checks those options again the
+  next time the game starts. While the toggle is on the setup is written
+  back on every change, so the panel, the hotkeys and **Hide all** / **Show
+  all** are all part of it; turning it off stops the saving and the next
+  launch starts with nothing checked. Like the reveal toggle it only deals
+  with the options of the list: the objects hidden one by one and the
+  categories created on the fly are left out of it.
 * **Player** takes your own character out of the picture — body, armor
   and held item — so it never blocks the view. It only disables renderers,
   the colliders and the camera stay untouched; the **Creatures** category
@@ -182,6 +192,8 @@ launch, also editable in game through Jötunn's ConfigManager):
 | `Selection` | `Max distance` | `100` | Maximum picking distance (meters) |
 | `Display` | `Panel height` | `640` | Vertical size of the panel (360 to 1200 pixels); the rows scroll when they do not fit in it |
 | `Logging` | `Log cursor info` | `false` | Logs the panel's "Under the cursor" text, only while the panel is on screen |
+| `Setup` | `Remember setup` | `false` | Keeps the options checked in the panel and checks them again on the next launch (same thing as the **Remember this setup** row of the panel) |
+| `Setup` | `Saved setup` | _empty_ | The options kept for the next launch, as a comma separated list of names (`terrain`, `water`, `clouds`, `player`, `hud` and the category keys). Filled in by the panel; edited by hand only to force a setup |
 
 ### Logging the cursor info
 
