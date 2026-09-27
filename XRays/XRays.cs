@@ -257,15 +257,17 @@ namespace XRays
         }
 
         /// <summary>
-        /// Optional logging of the "Under the cursor" info: same text as the
-        /// panel, sampled periodically and written only when it changes so the
-        /// log stays readable. Only runs while the panel is open.
+        /// Optional logging of the "Under the cursor" info: the exact text the
+        /// panel is showing, sampled periodically and written only when it
+        /// changes so the log stays readable. Nothing is ever written while
+        /// the panel is closed.
         /// </summary>
         private void TickCursorLog(float deltaTime)
         {
-            bool guiOpen = Panel != null && Panel.IsOpen;
+            // the displayed text is null unless the panel is on screen
+            string displayed = Panel != null && Panel.IsVisible ? Panel.CursorText : null;
 
-            if (LogCursorInfo == null || !LogCursorInfo.Value || !guiOpen)
+            if (LogCursorInfo == null || !LogCursorInfo.Value || displayed == null)
             {
                 // reset so the current target is logged again when logging resumes
                 lastCursorLog = null;
@@ -281,14 +283,13 @@ namespace XRays
 
             cursorLogTimer = 0f;
 
-            string text = PickService.Describe(PickDistance.Value, Visibility);
-            if (text == lastCursorLog)
+            if (displayed == lastCursorLog)
             {
                 return;
             }
 
-            lastCursorLog = text;
-            Logger.LogInfo(text.Replace("\n", "  |  "));
+            lastCursorLog = displayed;
+            Logger.LogInfo(displayed.Replace("\n", "  |  "));
         }
 
         private bool ModifierHeld()

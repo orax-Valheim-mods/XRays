@@ -48,6 +48,16 @@ namespace XRays
 
         public bool IsOpen => root != null && root.activeSelf;
 
+        /// <summary>
+        /// Is the panel really on screen: opened, part of an active hierarchy
+        /// and with its "under the cursor" line actually rendered.
+        /// </summary>
+        public bool IsVisible =>
+            IsOpen && root.activeInHierarchy && cursorText != null && cursorText.isActiveAndEnabled;
+
+        /// <summary>The "under the cursor" text currently shown by the panel.</summary>
+        public string CursorText => cursorText != null ? cursorText.text : null;
+
         public void Toggle()
         {
             if (IsOpen)
