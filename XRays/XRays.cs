@@ -110,7 +110,7 @@ namespace XRays
                 "Hotkeys",
                 "Clouds",
                 KeyCode.F6,
-                "Hide / show the clouds in the sky."
+                "Hide / show the clouds in the sky (planes, horizon cylinder, particle clouds)."
             );
             KeyPlayer = Config.Bind(
                 "Hotkeys",

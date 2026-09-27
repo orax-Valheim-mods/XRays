@@ -35,7 +35,7 @@ Two ways to use it:
 | `F2` | Shows every checked option at once; the next press brings that exact setup back |
 | `F7` | Hides / shows the **terrain** |
 | `F10` | Hides / shows the **water** (zones and the sea on the horizon) |
-| `F6` | Hides / shows the **clouds** of the sky |
+| `F6` | Hides / shows the **clouds** of the sky (planes, horizon cylinder, particle clouds) |
 | `F4` | Hides / shows **your own character** (body, armor and held item) |
 | `F3` | Hides / shows the **HUD** (bars, hot bar, mini map, crosshair, hints) |
 | `F9` | Hides / shows **the object under the cursor** |
@@ -59,6 +59,10 @@ Two ways to use it:
   aimed point for the terrain / water) and the distance in meters.
 * Colliders are never touched: the world stays playable, only renderers are
   disabled (their original state is memorised and restored).
+* **Clouds** takes away everything the environment calls a cloud, wherever it
+  sits in its tree: the big planes and the horizon cylinder at its top level,
+  but also the particle clouds and the distant mist clouds, which live deeper
+  inside it and used to stay on screen.
 * The reveal / restore toggle (its button and its hotkey) only deals with the
   options of the list: the objects hidden one by one with `F9` and the
   categories only known under their name keep their state, and anything ticked
@@ -183,7 +187,7 @@ launch, also editable in game through Jötunn's ConfigManager):
 | `Hotkeys` | `Close` | `Escape` | Closes the XRays panel |
 | `Hotkeys` | `Terrain` | `F7` | Hides / shows the terrain |
 | `Hotkeys` | `Water` | `F10` | Hides / shows the water |
-| `Hotkeys` | `Clouds` | `F6` | Hides / shows the clouds |
+| `Hotkeys` | `Clouds` | `F6` | Hides / shows the clouds (planes, horizon cylinder, particle clouds) |
 | `Hotkeys` | `Player` | `F4` | Hides / shows your own character (the Creatures category never includes it) |
 | `Hotkeys` | `HUD` | `F3` | Hides / shows the HUD (the game's own `Ctrl` + `F3` does the same) |
 | `Hotkeys` | `Pick` | `F9` | Hides / shows the object under the cursor |

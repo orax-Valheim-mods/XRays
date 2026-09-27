@@ -833,10 +833,50 @@ namespace XRays
             return CollectEnvironmentRoots("water");
         }
 
-        /// <summary>The clouds of the sky ("Clouds", "CloudCylinder", ...).</summary>
+        /// <summary>
+        /// The clouds of the sky. The whole environment tree is walked, not
+        /// only its top level: the planes ("Clouds") and the horizon
+        /// cylinder ("CloudCylinder") are children of the environment, but
+        /// the particle clouds ("FogClouds") and the distant mist clouds sit
+        /// deeper in it and used to stay on screen.
+        /// </summary>
         private static IEnumerable<GameObject> CollectCloudRoots()
         {
-            return CollectEnvironmentRoots("cloud");
+            List<GameObject> result = new List<GameObject>();
+            EnvMan env = EnvMan.instance;
+
+            if (env == null)
+            {
+                return result;
+            }
+
+            CollectCloudRoots(env.transform, result);
+            return result;
+        }
+
+        /// <summary>
+        /// The children named like a cloud, at any depth. A branch that
+        /// matches is taken as a whole: everything below it goes with it,
+        /// there is no cloud inside it worth keeping.
+        /// </summary>
+        private static void CollectCloudRoots(Transform parent, List<GameObject> result)
+        {
+            foreach (Transform child in parent)
+            {
+                if (child == null)
+                {
+                    continue;
+                }
+
+                if (child.name.IndexOf("cloud", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    result.Add(child.gameObject);
+                }
+                else
+                {
+                    CollectCloudRoots(child, result);
+                }
+            }
         }
 
         /// <summary>
