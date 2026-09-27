@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using UnityEngine;
 
 namespace XRays
@@ -18,6 +19,12 @@ namespace XRays
         public GameObject Root;
         public string Name;
         public bool Hidden;
+
+        /// <summary>World position of the picked element (the hit point for terrain / water).</summary>
+        public Vector3 Position;
+
+        /// <summary>Distance between the camera and the picked element, in meters.</summary>
+        public float Distance;
     }
 
     /// <summary>
@@ -66,6 +73,12 @@ namespace XRays
                     continue;
                 }
 
+                // where it is: the object position, or the aimed point for terrain / water
+                result.Distance = hit.distance;
+                result.Position = result.Kind == PickKind.Object && result.Root != null
+                    ? result.Root.transform.position
+                    : hit.point;
+
                 if (result.Kind == PickKind.Terrain)
                 {
                     // terrain already hidden: look for what is behind it
@@ -105,29 +118,61 @@ namespace XRays
             return hiddenFallback;
         }
 
+        /// <summary>
+        /// Detailed description of the picked element, used by the panel:
+        /// name, category, hidden state, then coordinates and distance on a
+        /// second line.
+        /// </summary>
         public static string Describe(float maxDistance, VisibilityManager visibility)
         {
             PickResult pick = Pick(maxDistance, visibility);
             if (pick == null)
             {
-                return "none";
+                return "Under the cursor: none";
             }
 
+            string title;
             switch (pick.Kind)
             {
                 case PickKind.Terrain:
-                    return "Terrain" + Suffix(visibility.TerrainHidden);
+                    title = "Terrain";
+                    break;
                 case PickKind.Water:
-                    return "Water" + Suffix(visibility.WaterHidden);
+                    title = "Water";
+                    break;
                 default:
-                    string label = pick.Category != null ? pick.Category.Label : "?";
-                    return pick.Name + "  [" + label + "]" + Suffix(pick.Hidden || visibility.IsRootHidden(pick.Root));
+                    title = pick.Name;
+                    break;
             }
+
+            string line = "Under the cursor: " + title;
+
+            if (pick.Category != null)
+            {
+                line += "  ·  Category: " + pick.Category.Label;
+            }
+
+            if (pick.Hidden || (pick.Root != null && visibility.IsRootHidden(pick.Root)))
+            {
+                line += "  ·  hidden";
+            }
+
+            return line + "\n" + Details(pick);
         }
 
-        private static string Suffix(bool hidden)
+        /// <summary>Coordinates + distance line (invariant culture, English unit).</summary>
+        private static string Details(PickResult pick)
         {
-            return hidden ? "  (hidden)" : "";
+            Vector3 position = pick.Position;
+            string prefix = pick.Kind == PickKind.Object ? "Pos" : "Hit";
+
+            return prefix + " (" + Format(position.x) + ", " + Format(position.y) + ", " + Format(position.z) + ")"
+                   + "  ·  " + Format(pick.Distance) + " m";
+        }
+
+        private static string Format(float value)
+        {
+            return value.ToString("0.0", CultureInfo.InvariantCulture);
         }
 
         /// <summary>

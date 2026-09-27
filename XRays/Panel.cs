@@ -140,7 +140,7 @@ namespace XRays
             objectsText.text = "Hidden objects: " + visibility.IndividualCount
                                + "    Other: " + visibility.HiddenNameCategoryCount;
 
-            cursorText.text = "Under the cursor: " + PickService.Describe(plugin.PickDistance.Value, visibility);
+            cursorText.text = PickService.Describe(plugin.PickDistance.Value, visibility);
         }
 
         /// <summary>
@@ -184,7 +184,7 @@ namespace XRays
             // pre-compute the panel layout
             float[] rows = new float[7 + Categories.BuiltIn.Length];
             rows[0] = Row(44f); // title
-            rows[1] = Row(26f); // under the cursor
+            rows[1] = Row(50f); // under the cursor (element + category, then coordinates)
             rows[2] = Row(30f); // terrain
             rows[3] = Row(30f); // water
             rows[4] = Row(26f); // section header
@@ -220,7 +220,7 @@ namespace XRays
             close.onClick.AddListener(Close);
 
             // "under the cursor" line
-            cursorText = MakeText("Under the cursor: —", LeftMargin, rows[1], 430f, 24f, 14, BodyColor, TextAnchor.MiddleLeft, gui.AveriaSerif);
+            cursorText = MakeText("Under the cursor: —", LeftMargin, rows[1], 430f, 50f, 14, BodyColor, TextAnchor.MiddleLeft, gui.AveriaSerif);
 
             // terrain / water
             terrainToggle = MakeToggle(LeftMargin, rows[2], visibility.TerrainHidden,

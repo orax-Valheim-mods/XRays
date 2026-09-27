@@ -25,6 +25,10 @@ Two ways to use it:
   100 m (configurable).
 * When the terrain is already hidden, picking "sees" through it and targets
   the object behind it.
+* The **Under the cursor** line of the panel shows the element name, its
+  category, whether it is currently hidden, its world coordinates
+  (`Pos (x, y, z)` for an object, `Hit (x, y, z)` for the aimed point on the
+  terrain / water) and the distance in meters.
 * Colliders are never touched: the world stays playable, only renderers are
   disabled (their original state is memorised and restored).
 
