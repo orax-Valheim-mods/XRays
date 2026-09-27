@@ -178,8 +178,11 @@ namespace XRays
                 Label = "Creatures",
                 // Character covers the animals and the monsters; a swimming
                 // fish carries no Character at all, only Fish + ItemDrop,
-                // and would be reported as a ground item instead
-                Types = new[] { typeof(Character), typeof(Fish) },
+                // and would be reported as a ground item instead. The ambient
+                // birds are the same story: Crow, Seagal and AshCrow carry no
+                // Character either, only RandomFlyingBird (plus a Destructible),
+                // so without it they survive the whole category.
+                Types = new[] { typeof(Character), typeof(Fish), typeof(RandomFlyingBird) },
                 SkipLocalPlayer = true
             },
             new Category

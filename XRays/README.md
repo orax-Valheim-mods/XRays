@@ -87,7 +87,10 @@ A category is normally backed by a game component (`TreeBase` / `TreeLog` for
 Trees, `WearNTear` / `Piece` for Build pieces, ...). **Creatures** follows
 `Character` — the animals and the monsters — plus `Fish`, because a swimming
 fish carries no `Character` at all (it is `Fish` + `ItemDrop`) and would be
-reported as a ground item otherwise. The **Trees** category
+reported as a ground item otherwise, plus `RandomFlyingBird`: the birds
+circling overhead (`Crow`, `Seagal`, `AshCrow`) carry no `Character` either,
+only a `Destructible`, and without that component they would stay in sight
+while every other animal is hidden. The **Trees** category
 also matches object names — `tree`, `birch`, `beech`, `oak`, `stump`, `stub`,
 `root`, `branch` (case insensitive) — because the small decorative trees, the
 stubs, the roots and the branches only carry a `Destructible`: without that
