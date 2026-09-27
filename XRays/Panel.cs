@@ -333,7 +333,7 @@ namespace XRays
             // title + close button: they belong to the header, they never
             // scroll out of sight
             MakeText(
-                "XRays — Visibility",
+                "XRays",
                 LeftMargin,
                 rows[0],
                 300f,
