@@ -284,7 +284,7 @@ namespace XRays
                 }
             );
             MakeText(
-                "Hide terrain",
+                "Terrain",
                 LeftMargin + 36f,
                 rows[2],
                 300f,
@@ -306,7 +306,7 @@ namespace XRays
                 }
             );
             MakeText(
-                "Hide water",
+                "Water",
                 LeftMargin + 36f,
                 rows[3],
                 300f,
@@ -328,7 +328,7 @@ namespace XRays
                 }
             );
             MakeText(
-                "Hide clouds",
+                "Clouds",
                 LeftMargin + 36f,
                 rows[4],
                 300f,
@@ -350,7 +350,7 @@ namespace XRays
                 }
             );
             MakeText(
-                "Hide player",
+                "Player",
                 LeftMargin + 36f,
                 rows[5],
                 300f,
@@ -372,7 +372,7 @@ namespace XRays
                 }
             );
             MakeText(
-                "Hide HUD",
+                "HUD",
                 LeftMargin + 36f,
                 rows[6],
                 300f,

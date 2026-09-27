@@ -44,12 +44,12 @@ Two ways to use it:
   aimed point for the terrain / water) and the distance in meters.
 * Colliders are never touched: the world stays playable, only renderers are
   disabled (their original state is memorised and restored).
-* **Hide player** takes your own character out of the picture — body, armor
+* **Player** takes your own character out of the picture — body, armor
   and held item — so it never blocks the view. It only disables renderers,
   the colliders and the camera stay untouched; the **Creatures** category
   never includes your own character, and the ray cast skips it as well (you
   never pick yourself).
-* **Hide HUD** takes the whole in-game HUD away in one go: health, stamina,
+* **HUD** takes the whole in-game HUD away in one go: health, stamina,
   eitr and adrenaline bars, hot bar, mini map, crosshair, status effects,
   build / key hints, ship and mount panels — everything the game itself
   groups under its HUD root. Chat, notifications, enemy health bars and
