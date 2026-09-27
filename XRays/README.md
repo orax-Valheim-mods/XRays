@@ -57,6 +57,11 @@ holding a known component is never claimed by the name rule: that component
 decides its category, which keeps the panel label and the hidden group in
 sync.
 
+The roots a category finds on its own are off limits to the name rules as
+well: `root` also matches `grassroot`, the object the game builds to hold
+every clutter patch, so hiding the Trees would have hidden the whole grass,
+the bushes and the isolated plants with the trees.
+
 Any object that does not belong to those groups automatically creates a
 "name" category (every object sharing the same name).
 

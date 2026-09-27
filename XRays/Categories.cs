@@ -436,6 +436,7 @@ namespace XRays
         private static void AddNamedRoots(Category category, List<GameObject> roots)
         {
             HashSet<int> seen = new HashSet<int>();
+            HashSet<Transform> foreignRoots = ForeignRoots(category);
 
             foreach (
                 UnityEngine.Object obj in UnityEngine.Object.FindObjectsByType(
@@ -446,6 +447,15 @@ namespace XRays
             {
                 Transform t = obj as Transform;
                 if (t == null || !category.MatchesName(t.name))
+                {
+                    continue;
+                }
+
+                // the roots the other categories find on their own (the grass
+                // root of the ClutterSystem) and everything below them: the
+                // rule "root" of the Trees category also matches "grassroot",
+                // which would hide the whole grass with the trees
+                if (IsUnderAny(t, foreignRoots))
                 {
                     continue;
                 }
@@ -469,6 +479,66 @@ namespace XRays
                     roots.Add(t.gameObject);
                 }
             }
+        }
+
+        /// <summary>
+        /// The roots the other categories provide themselves (see
+        /// RootProvider): a name rule never claims one of them, nor anything
+        /// below it, whatever the two names have in common.
+        /// </summary>
+        private static HashSet<Transform> ForeignRoots(Category category)
+        {
+            HashSet<Transform> result = null;
+
+            foreach (Category other in All)
+            {
+                if (other == category || other.RootProvider == null)
+                {
+                    continue;
+                }
+
+                List<GameObject> provided = other.RootProvider();
+                if (provided == null)
+                {
+                    continue;
+                }
+
+                foreach (GameObject root in provided)
+                {
+                    if (root == null)
+                    {
+                        continue;
+                    }
+
+                    if (result == null)
+                    {
+                        result = new HashSet<Transform>();
+                    }
+
+                    result.Add(root.transform);
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>Is that object one of those roots, or below one of them?</summary>
+        private static bool IsUnderAny(Transform transform, HashSet<Transform> roots)
+        {
+            if (roots == null || transform == null)
+            {
+                return false;
+            }
+
+            for (Transform current = transform; current != null; current = current.parent)
+            {
+                if (roots.Contains(current))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool HasMatchingParent(Transform transform, Category category)
