@@ -40,7 +40,7 @@ Two ways to use it:
 | `Not set` | Hides / shows the **terrain** |
 | `Not set` | Hides / shows the **water** (zones and the sea on the horizon) |
 | `Not set` | Hides / shows the **clouds** of the sky (planes, horizon cylinder, particle clouds) |
-| `Not set` | Hides / shows the **mist** and the fog (ground mist, weather fog, distant fog planes, distance fog) |
+| `Not set` | Hides / shows the **mist** and the fog (ground mist, weather fog, distant fog planes, ocean mist, Mistlands mist, distance fog) |
 | `Not set` | Hides / shows **your own character** (body, armor and held item) |
 | `Not set` | Hides / shows the **HUD** (bars, hot bar, mini map, crosshair, hints) |
 | `Not set` | Hides / shows **the object under the cursor** |

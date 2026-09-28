@@ -582,7 +582,7 @@ namespace XRays
                 MakeLayerOption(
                     gui,
                     "Mist",
-                    "The mist and the fog: ground mist, weather fog, distant fog planes, ocean mist and the distance fog of the game.",
+                    "The mist and the fog: ground mist, weather fog, distant fog planes, ocean mist, the Mistlands mist and the distance fog of the game.",
                     visibility.MistHidden,
                     v =>
                     {

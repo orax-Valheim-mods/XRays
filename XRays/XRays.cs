@@ -149,7 +149,7 @@ namespace XRays
             KeyMist = BindHotkey(
                 "Mist",
                 KeyboardShortcut.Empty,
-                "Hide / show the mist and the fog (ground mist, weather fog, distant fog planes, Mistlands mist) and the distance fog of the game. The game itself already takes F1, F2, F3, F9 and F11, and F5 opens its console: record a key it does not use."
+                "Hide / show the mist and the fog (ground mist, weather fog, distant fog planes, ocean mist, Mistlands mist) and the distance fog of the game. The game itself already takes F1, F2, F3, F9 and F11, and F5 opens its console: record a key it does not use."
             );
             KeyPlayer = BindHotkey(
                 "Player",
