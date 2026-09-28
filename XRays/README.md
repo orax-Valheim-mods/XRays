@@ -212,10 +212,11 @@ window opened with `F1`):
 The hotkeys are **key combinations**: in that window, click a hotkey and it
 records the next combination you press (a key plus modifier keys), there is
 no list to pick from, and *Clear* unsets it. A combination has to be pressed
-exactly as recorded — a modifier key held for something else (the run key
-`Shift`, the crouch key `Ctrl`) cancels the press — and it is written main
-key first, the way the window shows it (`F9 + LeftControl` for `Ctrl` held
-together with `F9`).
+exactly as recorded: the modifier keys must be held with the main key, and
+any other key held at the same time cancels the press — except the modifier
+keys themselves (`Shift`, `Ctrl`, `Alt`), which are always free. It is
+written main key first, the way the window shows it (`F9 + LeftControl` for
+`Ctrl` held together with `F9`).
 
 They are listed under the `Show/hide hotkeys` section, except `Close
 control panel`, `Open/close control panel` and `Pick category` which sit

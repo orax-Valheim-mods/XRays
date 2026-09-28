@@ -775,10 +775,11 @@ namespace XRays
             Logger.LogInfo(displayed.Replace("\n", "  |  "));
         }
 
-        // A shortcut fires for the exact combination it holds: a modifier key
-        // held for something else (the run key, the crouch key) cancels the
-        // press, and a combination with modifiers only fires while those are
-        // down. An unset combination never fires.
+        // A shortcut fires for the exact combination it holds: the modifier
+        // keys must be down with the main key, and any other key held at the
+        // same time cancels the press — except the modifier keys themselves
+        // (Shift, Ctrl, Alt), which are always free. An unset combination
+        // never fires.
         private static bool Hotkey(ConfigEntry<KeyboardShortcut> entry, bool blocked)
         {
             return entry != null && !blocked && entry.Value.IsDown();
