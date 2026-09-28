@@ -23,18 +23,10 @@ namespace XRays
         internal VisibilityManager Visibility { get; private set; }
         internal Panel Panel { get; private set; }
 
-        /// <summary>
-        /// Opens / closes the panel. It sits in the "General hotkeys"
-        /// section with Close GUI and the pick category, away from the
-        /// plain hotkeys.
-        /// </summary>
+        /// <summary>Opens / closes the panel, in the "General hotkeys" section.</summary>
         internal ConfigEntry<KeyboardShortcut> KeyPanel;
 
-        // Hotkeys shown in the panel help text, each one a key combination:
-        // click it in the config window and press that combination to record
-        // a new one. The plain ones are listed under "Show/hide hotkeys",
-        // Close GUI and the pick category sit with the panel key under
-        // "General hotkeys".
+        // Hotkeys shown in the panel help text, each one a key combination.
         internal ConfigEntry<KeyboardShortcut> KeyClose;
         internal ConfigEntry<KeyboardShortcut> KeyTerrain;
         internal ConfigEntry<KeyboardShortcut> KeyWater;
@@ -67,16 +59,16 @@ namespace XRays
         /// <summary>How often the remembered setup is written back (while it is on).</summary>
         private const float SetupSyncInterval = 0.5f;
 
-        /// <summary>The config section the panel key and the pick category are listed under.</summary>
+        /// <summary>The config section the panel key, Close GUI and the pick category are listed under.</summary>
         private const string GeneralHotkeysSection = "General hotkeys";
 
-        /// <summary>The config section they used to be listed under.</summary>
+        /// <summary>Section still read when the panel key and the pick category are bound, to carry their values over.</summary>
         private const string FormerGeneralSection = "General";
 
         /// <summary>The config section the plain hotkeys are listed under, in the game's config window.</summary>
         private const string HotkeySection = "Show/hide hotkeys";
 
-        /// <summary>The config section they used to be listed under.</summary>
+        /// <summary>Section still read when the hotkeys are bound, to carry their values over.</summary>
         private const string FormerHotkeySection = "Hotkeys";
 
         /// <summary>Names of the world options, in panel order.</summary>
@@ -113,12 +105,6 @@ namespace XRays
             bool saveOnConfigSet = Config.SaveOnConfigSet;
             Config.SaveOnConfigSet = false;
 
-            // The panel key has moved twice: it started in "Hotkeys" as
-            // "Panel", then became "Show/hide panel" in "General", and it now
-            // sits with the other general hotkeys. BindShortcut reads every
-            // line it used to have, from the newest to the oldest, keeps the
-            // first one with a value of its own and drops those old lines
-            // from the file.
             const KeyCode defaultPanelKey = KeyCode.F8;
             KeyboardShortcut defaultPanelShortcut = new KeyboardShortcut(defaultPanelKey);
 
@@ -131,10 +117,6 @@ namespace XRays
                 new ConfigDefinition(FormerHotkeySection, "Panel")
             );
 
-            // The close key follows the panel key into the same section and
-            // takes the name it has now, "Close GUI". The two lines it used
-            // to have are read here like every other move, from the newest to
-            // the oldest, and then dropped from the file.
             KeyClose = BindShortcut(
                 GeneralHotkeysSection,
                 "Close GUI",
@@ -143,11 +125,10 @@ namespace XRays
                 new ConfigDefinition(HotkeySection, "Close"),
                 new ConfigDefinition(FormerHotkeySection, "Close")
             );
-            // None of these has a key of its own: every one of them starts
-            // "Not set", so a fresh install presses nothing and each one
-            // gets the combination recorded for it in the config window. A
-            // config file that already holds a combination keeps it, only
-            // the entries missing from the file fall back to the default.
+
+            // No key of their own: each one starts "Not set", so a fresh
+            // install presses nothing. A config file that already holds a
+            // combination keeps it, only a missing entry takes the default.
             KeyTerrain = BindHotkey(
                 "Terrain",
                 KeyboardShortcut.Empty,
@@ -189,16 +170,6 @@ namespace XRays
                 "Show every checked option at once, then bring that setup back on the next press. With nothing checked it checks them all."
             );
 
-            // The pick category has moved three times: it started as a bare
-            // key held together with Pick ("Category modifier", in
-            // "Hotkeys"), then became a combination of its own, first among
-            // the plain hotkeys then in "General", and it now sits with the
-            // panel key in "General hotkeys". BindShortcut reads every line
-            // it used to have, from the newest to the oldest, keeps the first
-            // one with a value of its own and drops those old lines from the
-            // file. The bare key it started as is the last resort: it becomes
-            // the modifiers of the combination, and None keeps the category
-            // out of reach, as it did before.
             const KeyCode defaultCategoryKey = KeyCode.F9;
             const KeyCode defaultCategoryModifier = KeyCode.LeftControl;
             KeyboardShortcut defaultCategoryShortcut = new KeyboardShortcut(
@@ -274,9 +245,6 @@ namespace XRays
 
             Config.SaveOnConfigSet = saveOnConfigSet;
 
-            // One write of the config now that every entry is bound: the file
-            // is complete (descriptions included) and the two lines the hotkeys
-            // used to have under their old names are really gone from it.
             Config.Save();
 
             Visibility = new VisibilityManager();

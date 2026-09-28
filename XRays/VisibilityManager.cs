@@ -916,7 +916,7 @@ namespace XRays
         /// only its top level: the planes ("Clouds") and the horizon
         /// cylinder ("CloudCylinder") are children of the environment, but
         /// the particle clouds ("FogClouds") and the distant mist clouds sit
-        /// deeper in it and used to stay on screen.
+        /// deeper in it.
         /// </summary>
         private static IEnumerable<GameObject> CollectCloudRoots()
         {
