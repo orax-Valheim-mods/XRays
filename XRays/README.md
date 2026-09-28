@@ -18,7 +18,7 @@ Two ways to use it:
   instead), **Hide all** (everything in that list at once) and **Show all**
   (back to the normal world). Staying on any row or button with the mouse
   for a moment brings up a little box describing it: the box follows the
-  pointer and goes away as soon as the pointer leaves. The title and the
+  pointer and goes away a moment after the pointer has left. The title and the
   **Close** button stay on top
   of the panel while the list scrolls under them, with the mouse wheel or
   the scrollbar on the right; the height of the panel itself is the
@@ -209,8 +209,8 @@ Vortex, r2modman or Gale.
 ## Configuration
 
 All options live in `BepInEx\config\orax.XRays.cfg` (created on the first
-launch, also editable in game through BepInEx's Configuration Manager, the
-window opened with `F1`):
+launch, also editable in game through the Configuration Manager — a separate
+mod, its window opens with `F1`):
 
 The hotkeys are **key combinations**: in that window, click a hotkey and it
 records the next combination you press (a key plus modifier keys), there is
