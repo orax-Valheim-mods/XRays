@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace XRays
@@ -52,6 +53,23 @@ namespace XRays
         public string[] NameExcludes;
 
         /// <summary>
+        /// Regular expressions matched against the object name (searched in
+        /// it, case insensitively: ^ and $ anchor a pattern covering the whole
+        /// name). They do what NameContains does for the names no substring
+        /// can tell apart. Compiled once and kept for the whole run: the name
+        /// rules are asked for every object of the scene, on every scan.
+        /// </summary>
+        public string[] NameMatches;
+
+        /// <summary>
+        /// Regular expressions given away to another category: the same
+        /// wording as NameExcludes, for the names no substring can tell apart.
+        /// Checked wherever NameExcludes is, so a category claiming those
+        /// names through a component hands them over as well.
+        /// </summary>
+        public string[] NameExcludesMatches;
+
+        /// <summary>
         /// Roots the mod finds on its own, for the objects that carry no game
         /// component at all: the clutter below the grass root of the
         /// ClutterSystem for example.
@@ -69,7 +87,8 @@ namespace XRays
         public bool HasNameMatch =>
             IsNameCategory
             || (NameContains != null && NameContains.Length > 0)
-            || (NameStartsWith != null && NameStartsWith.Length > 0);
+            || (NameStartsWith != null && NameStartsWith.Length > 0)
+            || (NameMatches != null && NameMatches.Length > 0);
 
         /// <summary>
         /// Does that object belong to the category according to its name?
@@ -99,13 +118,20 @@ namespace XRays
                 return true;
             }
 
-            return ContainsAny(objectName, NameContains);
+            if (ContainsAny(objectName, NameContains))
+            {
+                return true;
+            }
+
+            // slowest rule, asked only for the names the substrings miss
+            return MatchesAnyPattern(objectName, NameMatches);
         }
 
         /// <summary>Is that name given away to another category?</summary>
         public bool MatchesExclude(string objectName)
         {
-            return ContainsAny(objectName, NameExcludes);
+            return ContainsAny(objectName, NameExcludes)
+                || MatchesAnyPattern(objectName, NameExcludesMatches);
         }
 
         private static bool ContainsAny(string objectName, string[] patterns)
@@ -121,6 +147,72 @@ namespace XRays
                     !string.IsNullOrEmpty(pattern)
                     && objectName.IndexOf(pattern, StringComparison.OrdinalIgnoreCase) >= 0
                 )
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// The regular expressions of the name rules, compiled the first time
+        /// they are met and kept: one pattern is asked for every object of the
+        /// scene, on every scan. A pattern that does not compile is stored as
+        /// null (it matches nothing) after being reported once.
+        /// </summary>
+        private static readonly Dictionary<string, Regex> NamePatterns = new Dictionary<
+            string,
+            Regex
+        >(StringComparer.Ordinal);
+
+        /// <summary>
+        /// Does any regular expression of the list match that name? The
+        /// patterns are compiled once and reused (see NamePatterns); one that
+        /// does not compile is reported the first time it is met and then
+        /// always kept as "never matches", so a typo cannot break the hiding.
+        /// </summary>
+        private static bool MatchesAnyPattern(string objectName, string[] patterns)
+        {
+            if (string.IsNullOrEmpty(objectName) || patterns == null)
+            {
+                return false;
+            }
+
+            foreach (string pattern in patterns)
+            {
+                if (string.IsNullOrEmpty(pattern))
+                {
+                    continue;
+                }
+
+                Regex regex;
+                if (!NamePatterns.TryGetValue(pattern, out regex))
+                {
+                    try
+                    {
+                        regex = new Regex(
+                            pattern,
+                            RegexOptions.IgnoreCase
+                                | RegexOptions.CultureInvariant
+                                | RegexOptions.Compiled
+                        );
+                    }
+                    catch (ArgumentException)
+                    {
+                        regex = null;
+                        if (XRays.Instance != null)
+                        {
+                            XRays.Instance.Log.LogError(
+                                "XRays: bad name pattern, it matches nothing: " + pattern
+                            );
+                        }
+                    }
+
+                    NamePatterns[pattern] = regex;
+                }
+
+                if (regex != null && regex.IsMatch(objectName))
                 {
                     return true;
                 }
@@ -189,18 +281,11 @@ namespace XRays
         /// </summary>
         private static readonly string[] OreNames =
         {
-            "copper",
-            "iron",
+            "_copper",
             "silver",
             "obsidian",
-            "meteor",
             "flametal",
-            "sulfur",
-            "sulphur",
-            "gold",
-            "coal",
-            "_tin",
-            "tin_",
+            "MineRock_Tin",
             "giant_arm",
             "giant_brain",
             "giant_helmet",

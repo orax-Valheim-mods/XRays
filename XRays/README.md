@@ -175,6 +175,14 @@ stone. Rocks hands every one of those names over to Ores, which is what keeps a
 copper vein out of the rocks while `MineRock_Stone` and the broken rock pieces
 stay in.
 
+The name rules can also be regular expressions: `NameMatches` claims the names
+a pattern describes, `NameExcludesMatches` gives them away to another
+category — the pattern twin of `NameContains` and `NameExcludes`. Both are
+case insensitive and **searched** in the name, so `^` and `$` anchor a pattern
+that has to cover the whole name, and they are compiled once and reused: the
+name rules are asked for every object of the scene, on every scan. A pattern
+that does not compile is written to the BepInEx log and matches nothing.
+
 **Spawners** is backed by the game's own spawner components: `CreatureSpawner`
 for the spawners, `SpawnArea` for the nests, the piles and the evil
 hearts, `TriggerSpawner` for the holes that open when you come close. A modded
