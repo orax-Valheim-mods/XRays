@@ -223,13 +223,16 @@ Vortex, r2modman or Gale.
 ### Manually
 1. Install [BepInExPack for Valheim](https://thunderstore.io/c/valheim/p/denikson/BepInExPack_Valheim/)
    and [Jötunn](https://thunderstore.io/c/valheim/p/ValheimModding/Jotunn/).
-2. Copy `XRays.dll` into `Steam\steamapps\common\Valheim\BepInEx\plugins\`.
+2. Copy `XRays.dll` and `YamlDotNet.dll` into `Steam\steamapps\common\Valheim\BepInEx\plugins\`.
 
 ## Configuration
 
 All options live in `BepInEx\config\orax.XRays.cfg` (created on the first
 launch, also editable in game through the Configuration Manager — a separate
 mod, its window opens with `F1`):
+
+The name rules of the categories have a file of their own,
+`BepInEx\config\orax.XRays.names.yaml`, described at the end of this section:
 
 The hotkeys are **key combinations**: in that window, click a hotkey and it
 records the next combination you press (a key plus modifier keys), there is
@@ -265,6 +268,56 @@ dropped from the file.
 | `Logging` | `Log cursor info` | `false` | Logs the panel's "Under the cursor" text, only while the panel is on screen |
 | `Setup` | `Remember setup` | `false` | Keeps the options checked in the panel and checks them again on the next launch (same thing as the **Remember this setup** row of the panel) |
 | `Setup` | `Saved setup` | _empty_ | The options kept for the next launch, as a comma separated list of names (`terrain`, `water`, `clouds`, `mist`, `player`, `hud` and the category keys). Filled in by the panel; edited by hand only to force a setup |
+
+### The name rules file
+
+What a category claims by name — the substrings, the prefixes and the
+regular expressions matched against the name of a game object, and the names
+it gives away to another category — lives in a file of its own,
+`BepInEx\config\orax.XRays.names.yaml`, written on the first launch and read
+again every time it changes while the game runs. A file holding a couple of
+categories could look like this:
+
+```yaml
+ores:
+  nameContains:
+    - "_copper"
+    - "silver"
+  nameMatches:
+    - "^giant_(arm|brain|helmet|ribs|skull|sword)"
+rocks:
+  nameExcludes:
+    - "_copper"
+```
+
+The five lists of a category, every one of them matched against the object
+name:
+
+| List | What it does |
+| --- | --- |
+| `nameContains` | case-insensitive substrings the category claims |
+| `nameStartsWith` | case-insensitive prefixes it claims |
+| `nameMatches` | regular expressions it claims, **searched** in the name (`^` and `$` anchor a pattern covering the whole name) |
+| `nameExcludes` | case-insensitive substrings given away to another category, which is how the ore veins are kept out of the rocks |
+| `nameExcludesMatches` | regular expressions given away the same way |
+
+The file is the **only source**: a list it does not carry is empty, and a
+category it does not carry has no name rule at all. The rules written in the
+code only fill the file the first time, so deleting it brings them back.
+Categories are named by their key — `trees`, `ores`, `rocks`, `pickable`,
+`build`, `creatures`, `items`, `plants`, `spawners`, `clutter`, `locations`
+— and a key naming none of them is written to the log, it is usually a typo.
+
+A list belongs to one category only: telling `ores` what it claims does not
+keep `rocks` from claiming the very same names, so both sides have to be
+written — which is what `nameExcludes` is for.
+
+A change is applied **while the game runs** (the date of the file is looked
+at twice a second): the categories keep a name scan for a couple of seconds,
+then the objects follow at the next reconciliation — what the checked
+categories claim is hidden, the rest comes back, and the objects picked one
+by one are left alone. A file that does not parse is written to the log and
+changes nothing, the rules already in force stay.
 
 ### Logging the cursor info
 

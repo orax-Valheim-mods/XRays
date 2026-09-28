@@ -16,13 +16,14 @@ See `XRays\Package\README.md` for the Thunderstore description.
 ```
 XRays.sln                  solution (build this, not the .csproj alone)
 Environment.props          BepInEx / deploy paths (Gale profile "dev")
-scripts\publish.ps1        copies the built DLL into BepInEx\scripts
+scripts\publish.ps1        copies the built DLL and YamlDotNet into BepInEx\scripts
 XRays\XRays.cs             main plugin: config, hotkeys, actions
 XRays\Categories.cs        category registry (trees, rocks, ...)
 XRays\VisibilityManager.cs hiding state + application on renderers
 XRays\PickService.cs       picking by ray cast under the cursor
 XRays\Panel.cs             Jötunn panel
 XRays\Tooltip.cs           little box describing the row under the mouse
+XRays\NameRulesFile.cs     name rules of the categories, read from a YAML file
 XRays\Package\             Thunderstore manifest.json / README.md / icon.png
 ```
 
@@ -37,6 +38,10 @@ dotnet build XRays.sln
 * In `Debug`, the post-build step publishes `XRays.dll` (+ `.pdb`, `.mdb`)
   to `BepInEx\scripts` of the game profile, where the BepInEx **Script Engine**
   loads it on launch.
+* The name rules file is read with **YamlDotNet** (NuGet), and
+  `publish.ps1` ships `YamlDotNet.dll` beside the plugin in both targets:
+  the Script Engine resolves a script's assemblies from `BepInEx\scripts`,
+  and BepInEx resolves a plugin's from its own folder.
 * In `Release`, an archive ready for Thunderstore is created in `Package`.
 
 ## Configuration
