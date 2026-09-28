@@ -298,8 +298,8 @@ namespace XRays
                 Key = "spawners",
                 Label = "Spawners",
                 Description =
-                    "The one-shot spawners, the nests and piles, the evil hearts and the holes that open on approach.",
-                // the one-shot spawners, the nests / piles / evil hearts
+                    "The spawners, the nests and piles, the evil hearts and the holes that open on approach.",
+                // the spawners, the nests / piles / evil hearts
                 // (SpawnArea) and the holes that open on approach
                 // (TriggerSpawner). SpawnSystem is on the zone controller,
                 // never on a spawner itself, and the fire / smoke spawners
