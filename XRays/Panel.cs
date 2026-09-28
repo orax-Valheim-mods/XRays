@@ -296,7 +296,6 @@ namespace XRays
 
             foreach (CategoryRow row in categoryRows)
             {
-                row.Label.text = row.Category.Label;
                 row.Count.text = Categories.Count(row.Category).ToString();
             }
         }
@@ -395,12 +394,7 @@ namespace XRays
                 gui.AveriaSerif
             );
 
-            // a little air between that block and the options: it is also
-            // where the longest descriptions spill when they run over their
-            // own block, so nothing ever lands on the first toggle.
-            // World layers and own display: the six of them share one
-            // compact line, and drop on a second one when their labels do
-            // not all fit in the width of the panel
+            // a little air between that block and the options
             cursor += 10f;
             cursor = MakeLayerOptions(gui, cursor);
 
