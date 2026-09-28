@@ -846,9 +846,7 @@ namespace XRays
                 + " : reveal / restore\n"
                 + XRays.Instance.KeyPick.Value
                 + " : hide object under cursor\n"
-                + XRays.Instance.ModifierKey.Value
-                + " + "
-                + XRays.Instance.KeyPick.Value
+                + XRays.Instance.KeyPickCategory.Value
                 + " : whole category under the cursor";
         }
 

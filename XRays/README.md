@@ -188,7 +188,16 @@ Vortex, r2modman or Gale.
 ## Configuration
 
 All options live in `BepInEx\config\orax.XRays.cfg` (created on the first
-launch, also editable in game through Jötunn's ConfigManager):
+launch, also editable in game through BepInEx's Configuration Manager, the
+window opened with `F1`):
+
+The hotkeys are **key combinations**: in that window, click a hotkey and it
+records the next combination you press (a key plus modifier keys), there is
+no list to pick from, and *Clear* unsets it. A combination has to be pressed
+exactly as recorded — a modifier key held for something else (the run key
+`Shift`, the crouch key `Ctrl`) cancels the press — and it is written main
+key first, the way the window shows it (`F9 + LeftControl` for `Ctrl` held
+together with `F9`).
 
 | Section | Option | Default | Description |
 | --- | --- | --- | --- |
@@ -202,7 +211,7 @@ launch, also editable in game through Jötunn's ConfigManager):
 | `Hotkeys` | `HUD` | `F3` | Hides / shows the HUD (the game's own `Ctrl` + `F3` does the same) |
 | `Hotkeys` | `Pick` | `F9` | Hides / shows the object under the cursor |
 | `Hotkeys` | `Reveal` | `F2` | Shows every checked option at once, then brings that exact setup back |
-| `Hotkeys` | `Category modifier` | `LeftControl` | Hold together with `Pick` to act on the whole category |
+| `Hotkeys` | `Pick category` | `F9 + LeftControl` | Hides / shows the whole category of the object under the cursor: `Pick` pressed with that combination (it used to be `Category modifier`, a bare key held together with `Pick`, that line is read once on the next launch and then dropped) |
 | `Selection` | `Max distance` | `100` | Maximum picking distance (meters) |
 | `Display` | `Panel height` | `700` | Vertical size of the panel (360 to 1200 pixels); the rows scroll when they do not fit in it |
 | `Logging` | `Log cursor info` | `false` | Logs the panel's "Under the cursor" text, only while the panel is on screen |
