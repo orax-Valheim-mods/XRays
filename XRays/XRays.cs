@@ -71,7 +71,7 @@ namespace XRays
         /// <summary>Section still read when the hotkeys are bound, to carry their values over.</summary>
         private const string FormerHotkeySection = "Hotkeys";
 
-        /// <summary>Names of the world options, in panel order.</summary>
+        /// <summary>Names of the world options, one per slot of the remembered setup.</summary>
         private static readonly string[] WorldOptionNames =
         {
             "terrain",
@@ -716,8 +716,8 @@ namespace XRays
         }
 
         /// <summary>
-        /// Name of the option at that slot (the world flags, then the
-        /// categories in panel order), null when the slot does not exist.
+        /// Name of the option at that slot (the world flags, then one slot
+        /// per built-in category), null when the slot does not exist.
         /// </summary>
         private string OptionNameAt(int index)
         {

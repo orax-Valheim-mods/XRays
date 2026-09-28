@@ -139,6 +139,12 @@ namespace XRays
         /// </summary>
         public const string CreaturesKey = "creatures";
 
+        /// <summary>
+        /// The categories in claim order: when an object is picked or
+        /// hidden, the first one holding a known component (or matching the
+        /// object name) decides its category. The panel lists them sorted
+        /// by label instead, which is what DisplayOrder holds.
+        /// </summary>
         public static readonly Category[] BuiltIn =
         {
             new Category
@@ -256,12 +262,26 @@ namespace XRays
                 // itself carries Location. Neither of them belongs to any
                 // other category, so without this one they would survive
                 // everything, Hide all included.
-                // Listed last: a known component always decides the category,
-                // so the trees, the rocks and the build pieces claim their
-                // own objects before these two.
+                // Last in this list: a known component always decides the
+                // category, so the trees, the rocks and the build pieces
+                // claim their own objects before these two.
                 Types = new[] { typeof(LocationProxy), typeof(Location) }
             }
         };
+
+        /// <summary>
+        /// The same categories sorted by label: the order the panel shows
+        /// them in. Only the panel reads it, the claim order above is the
+        /// one everything else keeps.
+        /// </summary>
+        public static readonly Category[] DisplayOrder = SortByLabel(BuiltIn);
+
+        private static Category[] SortByLabel(Category[] source)
+        {
+            Category[] sorted = (Category[])source.Clone();
+            Array.Sort(sorted, (a, b) => string.CompareOrdinal(a.Label, b.Label));
+            return sorted;
+        }
 
         private static readonly Dictionary<string, Category> Registry =
             new Dictionary<string, Category>();

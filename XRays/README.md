@@ -7,10 +7,10 @@ ground items, etc.
 Two ways to use it:
 
 * **The control panel** (vanilla woodpanel via Jötunn): one single list of
-  options — the terrain, the water, the clouds, the mist, your own character
-  and the HUD share one compact line (a second one when their labels do not
-  fit side by side), then a checkbox per category — with loaded-object
-  counters,
+  options — the clouds, the HUD, the mist, your own character, the terrain
+  and the water share one compact line (a second one when their labels do
+  not fit side by side), then a checkbox per category, in alphabetical
+  order — with loaded-object counters,
   a row that keeps the whole setup for the next launch, and three global
   buttons: **Reveal** (shows everything the checked options
   were hiding, the next press turns it into **Restore** and brings that exact
@@ -115,8 +115,8 @@ Two ways to use it:
 
 ## Recognized categories
 
-Trees · Rocks / ore · Pickable resources · Build pieces · Creatures ·
-Ground items · Crops · Spawners · Grass / vegetation · Locations.
+Build pieces · Creatures · Crops · Grass / vegetation · Ground items ·
+Locations · Pickable resources · Rocks / ore · Spawners · Trees.
 
 A category is normally backed by a game component (`TreeBase` / `TreeLog` for
 Trees, `WearNTear` / `Piece` for Build pieces, ...). **Creatures** follows

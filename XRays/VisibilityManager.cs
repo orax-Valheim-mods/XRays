@@ -363,15 +363,15 @@ namespace XRays
 
         /// <summary>
         /// How many of the options are plain world / own display flags. The
-        /// category slots follow them, in panel order: that layout is the
-        /// state the reveal toggle and the remembered setup both work with.
+        /// category slots follow them, one per built-in category: that
+        /// layout is the state the reveal toggle and the remembered setup
+        /// both work with.
         /// </summary>
         public const int WorldOptionCount = 6;
 
         /// <summary>
         /// The options checked when the reveal started (the flags then one
-        /// slot per category, in panel order), null when there is nothing to
-        /// bring back.
+        /// slot per category), null when there is nothing to bring back.
         /// </summary>
         private bool[] revealedFrom;
 
@@ -439,9 +439,9 @@ namespace XRays
         }
 
         /// <summary>
-        /// Current state of every panel option, in panel order: the world
-        /// flags then one slot per category. It is also the shape the
-        /// remembered setup is stored in for the next launch.
+        /// Current state of every panel option: the world flags, then one
+        /// slot per category. It is also the shape the remembered setup is
+        /// stored in for the next launch.
         /// </summary>
         public bool[] CaptureOptions()
         {

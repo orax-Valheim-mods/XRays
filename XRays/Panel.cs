@@ -310,7 +310,7 @@ namespace XRays
             // the title belongs to the fixed header, the rest scrolls. The
             // rows below the world layers are computed once that block has
             // measured itself, since it takes one line or two.
-            float[] rows = new float[6 + Categories.BuiltIn.Length];
+            float[] rows = new float[6 + Categories.DisplayOrder.Length];
             rows[0] = Row(44f); // title (header)
             headerHeight = cursor + 8f; // margins of the header, then the viewport
 
@@ -387,24 +387,24 @@ namespace XRays
             cursor = MakeLayerOptions(gui, cursor);
 
             // the rows below that block, now that its height is known
-            for (int i = 0; i < Categories.BuiltIn.Length; i++)
+            for (int i = 0; i < Categories.DisplayOrder.Length; i++)
             {
                 rows[2 + i] = Row(26f);
             }
 
-            rows[2 + Categories.BuiltIn.Length] = Row(30f); // hidden objects
-            rows[3 + Categories.BuiltIn.Length] = Row(26f); // remembered setup
-            rows[4 + Categories.BuiltIn.Length] = Row(34f); // global buttons
-            rows[5 + Categories.BuiltIn.Length] = Row(100f); // help text (5 lines)
+            rows[2 + Categories.DisplayOrder.Length] = Row(30f); // hidden objects
+            rows[3 + Categories.DisplayOrder.Length] = Row(26f); // remembered setup
+            rows[4 + Categories.DisplayOrder.Length] = Row(34f); // global buttons
+            rows[5 + Categories.DisplayOrder.Length] = Row(100f); // help text (5 lines)
             contentHeight = cursor + 16f;
 
             // the rows are known: the scrolling content gets its height
             ApplyHeight(builtHeight);
 
             // the categories simply continue the list of options
-            for (int i = 0; i < Categories.BuiltIn.Length; i++)
+            for (int i = 0; i < Categories.DisplayOrder.Length; i++)
             {
-                Category category = Categories.BuiltIn[i];
+                Category category = Categories.DisplayOrder[i];
                 float y = rows[2 + i];
 
                 CategoryRow row = new CategoryRow
@@ -445,7 +445,7 @@ namespace XRays
 
             // the hidden objects counter, the remembered setup, then the
             // three global buttons
-            int counter = 2 + Categories.BuiltIn.Length;
+            int counter = 2 + Categories.DisplayOrder.Length;
             int remember = counter + 1;
             int actions = remember + 1;
             int helpRow = actions + 1;
@@ -511,10 +511,10 @@ namespace XRays
         }
 
         /// <summary>
-        /// The world layer options (terrain, water, clouds, mist, player,
-        /// hud): they share one compact line and drop on a second one when
-        /// their labels do not all fit in the width of the panel. Returns
-        /// the cursor, moved past the block.
+        /// The world layer options (clouds, hud, mist, player, terrain,
+        /// water), in label order: they share one compact line and drop on
+        /// a second one when their labels do not all fit in the width of
+        /// the panel. Returns the cursor, moved past the block.
         /// </summary>
         private float MakeLayerOptions(GUIManager gui, float top)
         {
@@ -523,31 +523,21 @@ namespace XRays
             {
                 MakeLayerOption(
                     gui,
-                    "Terrain",
-                    visibility.TerrainHidden,
-                    v =>
-                    {
-                        visibility.SetTerrain(v);
-                        Refresh();
-                    }
-                ),
-                MakeLayerOption(
-                    gui,
-                    "Water",
-                    visibility.WaterHidden,
-                    v =>
-                    {
-                        visibility.SetWater(v);
-                        Refresh();
-                    }
-                ),
-                MakeLayerOption(
-                    gui,
                     "Clouds",
                     visibility.CloudsHidden,
                     v =>
                     {
                         visibility.SetClouds(v);
+                        Refresh();
+                    }
+                ),
+                MakeLayerOption(
+                    gui,
+                    "HUD",
+                    visibility.HudHidden,
+                    v =>
+                    {
+                        visibility.SetHud(v);
                         Refresh();
                     }
                 ),
@@ -573,23 +563,34 @@ namespace XRays
                 ),
                 MakeLayerOption(
                     gui,
-                    "HUD",
-                    visibility.HudHidden,
+                    "Terrain",
+                    visibility.TerrainHidden,
                     v =>
                     {
-                        visibility.SetHud(v);
+                        visibility.SetTerrain(v);
+                        Refresh();
+                    }
+                ),
+                MakeLayerOption(
+                    gui,
+                    "Water",
+                    visibility.WaterHidden,
+                    v =>
+                    {
+                        visibility.SetWater(v);
                         Refresh();
                     }
                 )
             };
 
-            // the light refresh keeps its hands on those six toggles
-            terrainToggle = options[0].Toggle;
-            waterToggle = options[1].Toggle;
-            cloudsToggle = options[2].Toggle;
-            mistToggle = options[3].Toggle;
-            playerToggle = options[4].Toggle;
-            hudToggle = options[5].Toggle;
+            // the light refresh keeps its hands on those six toggles, taken
+            // from the array in the same order as above
+            cloudsToggle = options[0].Toggle;
+            hudToggle = options[1].Toggle;
+            mistToggle = options[2].Toggle;
+            playerToggle = options[3].Toggle;
+            terrainToggle = options[4].Toggle;
+            waterToggle = options[5].Toggle;
 
             float total = 0f;
             for (int i = 0; i < options.Length; i++)
