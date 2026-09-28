@@ -199,15 +199,15 @@ exactly as recorded — a modifier key held for something else (the run key
 key first, the way the window shows it (`F9 + LeftControl` for `Ctrl` held
 together with `F9`).
 
-They are listed under the `Show/hide hotkeys` section, which used to be
-simply called `Hotkeys`, except `Pick category` which sits in `General`
-next to the panel key: every line they used to have is read once on the
-next launch, its value is kept, and it is then dropped from the file.
+They are listed under the `Show/hide hotkeys` section, except `Show/hide
+panel` and `Pick category` which sit together in `General hotkeys`. When a
+setting moves, every line it used to have is read once on the next launch,
+its value is kept, and it is then dropped from the file.
 
 | Section | Option | Default | Description |
 | --- | --- | --- | --- |
-| `General` | `Show/hide panel` | `F8` | Opens / closes the XRays panel (it used to be `Hotkeys` → `Panel`, that line is read once on the next launch and then dropped) |
-| `General` | `Pick category` | `F9 + LeftControl` | Hides / shows the whole category of the object under the cursor: `Pick` pressed with that combination (it used to be `Hotkeys` → `Category modifier`, then `Show/hide hotkeys` → `Pick category`: both lines are read once on the next launch and then dropped) |
+| `General hotkeys` | `Show/hide panel` | `F8` | Opens / closes the XRays panel (it used to be `Hotkeys` → `Panel`, then `General` → `Show/hide panel`) |
+| `General hotkeys` | `Pick category` | `F9 + LeftControl` | Hides / shows the whole category of the object under the cursor: `Pick` pressed with that combination (it used to be `Hotkeys` → `Category modifier`, then `Show/hide hotkeys` → `Pick category`, then `General` → `Pick category`) |
 | `Show/hide hotkeys` | `Close` | `Escape` | Closes the XRays panel |
 | `Show/hide hotkeys` | `Terrain` | `F7` | Hides / shows the terrain |
 | `Show/hide hotkeys` | `Water` | `F10` | Hides / shows the water |

@@ -24,8 +24,8 @@ namespace XRays
         internal Panel Panel { get; private set; }
 
         /// <summary>
-        /// Opens / closes the panel. It sits in the "General" section with
-        /// the pick category, away from the plain hotkeys.
+        /// Opens / closes the panel. It sits in the "General hotkeys"
+        /// section with the pick category, away from the plain hotkeys.
         /// </summary>
         internal ConfigEntry<KeyboardShortcut> KeyPanel;
 
@@ -65,9 +65,12 @@ namespace XRays
         private const float SetupSyncInterval = 0.5f;
 
         /// <summary>The config section the panel key and the pick category are listed under.</summary>
-        private const string GeneralSection = "General";
+        private const string GeneralHotkeysSection = "General hotkeys";
 
-        /// <summary>The config section the hotkeys are listed under, in the game's config window.</summary>
+        /// <summary>The config section they used to be listed under.</summary>
+        private const string FormerGeneralSection = "General";
+
+        /// <summary>The config section the plain hotkeys are listed under, in the game's config window.</summary>
         private const string HotkeySection = "Show/hide hotkeys";
 
         /// <summary>The config section they used to be listed under.</summary>
@@ -107,35 +110,23 @@ namespace XRays
             bool saveOnConfigSet = Config.SaveOnConfigSet;
             Config.SaveOnConfigSet = false;
 
-            // The panel key used to live in "Hotkeys" under the name "Panel":
-            // once an entry is not bound anymore BepInEx keeps its line aside,
-            // so the old definition is bound once here to pick up the key the
-            // config file holds for it, then dropped so that line stops being
-            // written. The value only comes over when the player gave that old
-            // line a key of its own and the new setting still has its default.
+            // The panel key has moved twice: it started in "Hotkeys" as
+            // "Panel", then became "Show/hide panel" in "General", and it now
+            // sits with the other general hotkeys. BindShortcut reads every
+            // line it used to have, from the newest to the oldest, keeps the
+            // first one with a value of its own and drops those old lines
+            // from the file.
             const KeyCode defaultPanelKey = KeyCode.F8;
             KeyboardShortcut defaultPanelShortcut = new KeyboardShortcut(defaultPanelKey);
-            KeyCode formerPanelKey = Config
-                .Bind(
-                    FormerHotkeySection,
-                    "Panel",
-                    defaultPanelKey,
-                    "Old name of General -> Show/hide panel, read one moment to carry its key over."
-                )
-                .Value;
-            Config.Remove(new ConfigDefinition(FormerHotkeySection, "Panel"));
 
-            KeyPanel = Config.Bind(
-                GeneralSection,
+            KeyPanel = BindShortcut(
+                GeneralHotkeysSection,
                 "Show/hide panel",
                 defaultPanelShortcut,
-                "Open / close the XRays control panel. Click it here and press a key combination to record a new one."
+                "Open / close the XRays control panel. Click it here and press a key combination to record a new one.",
+                new ConfigDefinition(FormerGeneralSection, "Show/hide panel"),
+                new ConfigDefinition(FormerHotkeySection, "Panel")
             );
-
-            if (formerPanelKey != defaultPanelKey && KeyPanel.Value.Equals(defaultPanelShortcut))
-            {
-                KeyPanel.Value = new KeyboardShortcut(formerPanelKey);
-            }
 
             KeyClose = BindHotkey(
                 "Close",
@@ -183,14 +174,16 @@ namespace XRays
                 "Show every checked option at once, then bring that setup back on the next press. With nothing checked it checks them all."
             );
 
-            // The pick category has moved twice: it started as a bare key
-            // held together with Pick ("Category modifier"), then became a
-            // combination of its own among the hotkeys, and it now sits next
-            // to the panel key in General. Every line it had is read once
-            // here and dropped, and its value only comes over while the new
-            // setting still has its default: a recorded combination wins over
-            // the bare key it came from (None keeps the category out of
-            // reach, as it did before).
+            // The pick category has moved three times: it started as a bare
+            // key held together with Pick ("Category modifier", in
+            // "Hotkeys"), then became a combination of its own, first among
+            // the plain hotkeys then in "General", and it now sits with the
+            // panel key in "General hotkeys". BindShortcut reads every line
+            // it used to have, from the newest to the oldest, keeps the first
+            // one with a value of its own and drops those old lines from the
+            // file. The bare key it started as is the last resort: it becomes
+            // the modifiers of the combination, and None keeps the category
+            // out of reach, as it did before.
             const KeyCode defaultCategoryKey = KeyCode.F9;
             const KeyCode defaultCategoryModifier = KeyCode.LeftControl;
             KeyboardShortcut defaultCategoryShortcut = new KeyboardShortcut(
@@ -203,44 +196,31 @@ namespace XRays
                     "Category modifier",
                     defaultCategoryModifier,
                     "Old name of "
-                        + GeneralSection
+                        + GeneralHotkeysSection
                         + " -> Pick category, read one moment to carry its key over."
                 )
                 .Value;
             Config.Remove(new ConfigDefinition(FormerHotkeySection, "Category modifier"));
 
-            KeyboardShortcut formerHotkeyCategory = Config
-                .Bind(
-                    HotkeySection,
-                    "Pick category",
-                    defaultCategoryShortcut,
-                    "Old section of "
-                        + GeneralSection
-                        + " -> Pick category, read one moment to carry its value over."
-                )
-                .Value;
-            Config.Remove(new ConfigDefinition(HotkeySection, "Pick category"));
-
-            KeyPickCategory = Config.Bind(
-                GeneralSection,
+            KeyPickCategory = BindShortcut(
+                GeneralHotkeysSection,
                 "Pick category",
                 defaultCategoryShortcut,
-                "Hide / show the whole category of the object under the cursor: Pick pressed with that combination. Click it here and press a key combination to record a new one."
+                "Hide / show the whole category of the object under the cursor: Pick pressed with that combination. Click it here and press a key combination to record a new one.",
+                new ConfigDefinition(FormerGeneralSection, "Pick category"),
+                new ConfigDefinition(HotkeySection, "Pick category"),
+                new ConfigDefinition(FormerHotkeySection, "Pick category")
             );
 
-            if (KeyPickCategory.Value.Equals(defaultCategoryShortcut))
+            if (
+                formerCategoryModifier != defaultCategoryModifier
+                && KeyPickCategory.Value.Equals(defaultCategoryShortcut)
+            )
             {
-                if (!formerHotkeyCategory.Equals(defaultCategoryShortcut))
-                {
-                    KeyPickCategory.Value = formerHotkeyCategory;
-                }
-                else if (formerCategoryModifier != defaultCategoryModifier)
-                {
-                    KeyPickCategory.Value =
-                        formerCategoryModifier == KeyCode.None
-                            ? KeyboardShortcut.Empty
-                            : new KeyboardShortcut(defaultCategoryKey, formerCategoryModifier);
-                }
+                KeyPickCategory.Value =
+                    formerCategoryModifier == KeyCode.None
+                        ? KeyboardShortcut.Empty
+                        : new KeyboardShortcut(defaultCategoryKey, formerCategoryModifier);
             }
 
             PickDistance = Config.Bind(
@@ -295,37 +275,50 @@ namespace XRays
         }
 
         /// <summary>
-        /// Binds a hotkey under the hotkey section, keeping the value the
-        /// config file still holds for it under the section it used to have:
+        /// Binds a key combination under its section, keeping the value the
+        /// config file still holds for it under the sections it used to have:
         /// an entry that is not bound anymore is kept aside by BepInEx, so
         /// binding it once reads that value back, and dropping it right after
-        /// takes that old line out of the file. The value only comes over when
-        /// the new setting still has its default, so a setting of its own
-        /// always wins.
+        /// takes that old line out of the file. The old locations are listed
+        /// from the newest to the oldest, the first one with a value of its
+        /// own passes it on, and the value only comes over while the setting
+        /// being bound still has its default: a setting of its own always
+        /// wins.
         /// </summary>
-        private ConfigEntry<KeyboardShortcut> BindHotkey(
+        private ConfigEntry<KeyboardShortcut> BindShortcut(
+            string section,
             string key,
             KeyboardShortcut defaultValue,
-            string description
+            string description,
+            params ConfigDefinition[] formerLocations
         )
         {
-            ConfigDefinition formerDefinition = new ConfigDefinition(FormerHotkeySection, key);
-            KeyboardShortcut formerValue = Config
-                .Bind(
-                    FormerHotkeySection,
-                    key,
-                    defaultValue,
-                    "Old section of "
-                        + HotkeySection
-                        + " -> "
-                        + key
-                        + ", read one moment to carry its value over."
-                )
-                .Value;
-            Config.Remove(formerDefinition);
+            KeyboardShortcut formerValue = defaultValue;
+
+            foreach (ConfigDefinition formerLocation in formerLocations)
+            {
+                KeyboardShortcut value = Config
+                    .Bind(
+                        formerLocation.Section,
+                        formerLocation.Key,
+                        defaultValue,
+                        "Old location of "
+                            + section
+                            + " -> "
+                            + key
+                            + ", read one moment to carry its value over."
+                    )
+                    .Value;
+                Config.Remove(formerLocation);
+
+                if (formerValue.Equals(defaultValue) && !value.Equals(defaultValue))
+                {
+                    formerValue = value;
+                }
+            }
 
             ConfigEntry<KeyboardShortcut> entry = Config.Bind(
-                HotkeySection,
+                section,
                 key,
                 defaultValue,
                 description
@@ -337,6 +330,26 @@ namespace XRays
             }
 
             return entry;
+        }
+
+        /// <summary>
+        /// Binds a plain hotkey under the hotkey section, keeping the value
+        /// the config file still holds for it under the section it used to
+        /// have.
+        /// </summary>
+        private ConfigEntry<KeyboardShortcut> BindHotkey(
+            string key,
+            KeyboardShortcut defaultValue,
+            string description
+        )
+        {
+            return BindShortcut(
+                HotkeySection,
+                key,
+                defaultValue,
+                description,
+                new ConfigDefinition(FormerHotkeySection, key)
+            );
         }
 
         private void OnDestroy()
