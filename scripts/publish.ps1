@@ -56,6 +56,12 @@ if ($Target.Equals("Debug")) {
     # The Script Engine resolves the references of a script against the
     # scripts folder, so its assemblies sit beside the plugin
     Copy-Item -Path "$TargetPath\YamlDotNet.dll" -Destination "$plug" -Force
+
+    # The name rules file ships in the plugins folder, where the mod looks for
+    # it first: on launch it copies that file into BepInEx\config
+    $plugins = "$(Split-Path -Parent $DeployPath)\plugins"
+    Write-Host "Copy orax.XRays.names.yaml to $plugins"
+    Copy-Item -Path "$ProjectPath\orax.XRays.names.yaml" -Destination "$plugins\orax.XRays.names.yaml" -Force
 }
 
 if($Target.Equals("Release")) {
@@ -70,6 +76,10 @@ if($Target.Equals("Release")) {
     # BepInEx resolves the references of a plugin against the folder it sits
     # in, so the assembly the plugin needs ships beside it
     Copy-Item -Path "$TargetPath\YamlDotNet.dll" -Destination "$PackagePath\plugins\YamlDotNet.dll" -Force
+
+    # The name rules file ships beside the plugin as well: on launch the mod
+    # copies that file into BepInEx\config
+    Copy-Item -Path "$ProjectPath\orax.XRays.names.yaml" -Destination "$PackagePath\plugins\orax.XRays.names.yaml" -Force
     Copy-Item -Path "$ProjectPath\README.md" -Destination "$PackagePath\README.md" -Force
     Compress-Archive -Path "$PackagePath\*" -DestinationPath "$TargetPath\$name.zip" -Force
 }
