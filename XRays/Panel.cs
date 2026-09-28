@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using BepInEx.Configuration;
 using Jotunn.Managers;
@@ -303,6 +304,29 @@ namespace XRays
         // ---------------------------------------------------------------- construction
 
         private bool Build()
+        {
+            try
+            {
+                return BuildPanel();
+            }
+            catch (Exception e)
+            {
+                // a panel that stops half-built is on screen with missing
+                // rows: it cannot be used and every refresh fails on them.
+                // What was created is dropped, the next attempt starts from
+                // scratch
+                if (root != null)
+                {
+                    UnityEngine.Object.Destroy(root);
+                }
+
+                Invalidate();
+                plugin.Log.LogError("XRays panel: build failed: " + e);
+                return false;
+            }
+        }
+
+        private bool BuildPanel()
         {
             if (GUIManager.CustomGUIFront == null)
             {
