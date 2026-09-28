@@ -55,6 +55,9 @@ namespace XRays
         /// <summary>The options kept for the next launch, as a list of names.</summary>
         internal ConfigEntry<string> SavedSetup;
 
+        /// <summary>Name of the YAML file holding the name rules of the categories.</summary>
+        internal ConfigEntry<string> NameRulesFileName;
+
         /// <summary>How often the "Under the cursor" info is sampled for logging.</summary>
         private const float CursorLogInterval = 0.4f;
 
@@ -251,6 +254,12 @@ namespace XRays
                 "Saved setup",
                 "",
                 "The options kept for the next launch, written as their names (terrain, water, clouds, mist, player, hud and the category keys, comma separated). Filled in by the panel: edited by hand only to force a setup."
+            );
+            NameRulesFileName = Config.Bind(
+                "Files",
+                "Name rules file",
+                NameRulesFile.DefaultFileName,
+                "Name of the YAML file holding the name rules of the categories. The mod looks for it in BepInEx\\plugins, beside its own assembly and in BepInEx\\scripts, and copies it into BepInEx\\config when it is missing there or written for another version of the mod: the copy of BepInEx\\config is the file read, and read again every time it changes while the game runs."
             );
 
             Config.SaveOnConfigSet = saveOnConfigSet;
