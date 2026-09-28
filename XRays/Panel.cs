@@ -40,6 +40,10 @@ namespace XRays
         private const string RememberTip =
             "Keeps the ticked options for the next launch: they are checked again when the game starts. Turning it off starts the next launch with nothing checked.";
 
+        /// <summary>What the "Show tooltips" row describes itself with.</summary>
+        private const string TooltipsTip =
+            "Shows the little box describing a row while the pointer rests on it. Turning it off takes every box away.";
+
         /// <summary>Limits of the "Panel height" option (vertical size).</summary>
         private const float MinPanelHeight = 360f;
 
@@ -105,6 +109,9 @@ namespace XRays
 
         /// <summary>The "Remember this setup" row (persisted options).</summary>
         private Toggle rememberToggle;
+
+        /// <summary>The "Show tooltips" row (persisted options).</summary>
+        private Toggle tooltipsToggle;
 
         private Button revealButton;
         private Text cursorText;
@@ -203,6 +210,7 @@ namespace XRays
             playerToggle = null;
             hudToggle = null;
             rememberToggle = null;
+            tooltipsToggle = null;
             revealButton = null;
             cursorText = null;
             objectsText = null;
@@ -230,7 +238,16 @@ namespace XRays
                 RefreshCounts();
             }
 
-            tip.Tick(deltaTime);
+            if (plugin.ShowTooltips.Value)
+            {
+                tip.Tick(deltaTime);
+            }
+            else
+            {
+                // the option went off: whatever box is on screen is dropped
+                // right away instead of following the pointer once more
+                tip.Reset();
+            }
         }
 
         /// <summary>Light refresh (toggles, "under the cursor" line).</summary>
@@ -259,6 +276,7 @@ namespace XRays
             // the config entry may have been changed from outside (config
             // manager), the row follows it
             rememberToggle.SetIsOnWithoutNotify(plugin.RememberSetup.Value);
+            tooltipsToggle.SetIsOnWithoutNotify(plugin.ShowTooltips.Value);
 
             foreach (CategoryRow row in categoryRows)
             {
@@ -349,7 +367,7 @@ namespace XRays
             // the title belongs to the fixed header, the rest scrolls. The
             // rows below the world layers are computed once that block has
             // measured itself, since it takes one line or two.
-            float[] rows = new float[6 + Categories.DisplayOrder.Length];
+            float[] rows = new float[7 + Categories.DisplayOrder.Length];
             rows[0] = Row(44f); // title (header)
             headerHeight = cursor + 8f; // margins of the header, then the viewport
 
@@ -430,8 +448,9 @@ namespace XRays
 
             rows[2 + Categories.DisplayOrder.Length] = Row(30f); // hidden objects
             rows[3 + Categories.DisplayOrder.Length] = Row(26f); // remembered setup
-            rows[4 + Categories.DisplayOrder.Length] = Row(34f); // global buttons
-            rows[5 + Categories.DisplayOrder.Length] = Row(100f); // help text (5 lines)
+            rows[4 + Categories.DisplayOrder.Length] = Row(26f); // show tooltips
+            rows[5 + Categories.DisplayOrder.Length] = Row(34f); // global buttons
+            rows[6 + Categories.DisplayOrder.Length] = Row(100f); // help text (5 lines)
             contentHeight = cursor + 16f;
 
             // the rows are known: the scrolling content gets its height
@@ -486,7 +505,8 @@ namespace XRays
             // three global buttons
             int counter = 2 + Categories.DisplayOrder.Length;
             int remember = counter + 1;
-            int actions = remember + 1;
+            int tooltips = remember + 1;
+            int actions = tooltips + 1;
             int helpRow = actions + 1;
 
             objectsText = MakeText(
@@ -526,6 +546,27 @@ namespace XRays
             );
             tip.Attach(rememberToggle.gameObject, RememberTip);
             tip.Attach(rememberLabel.gameObject, RememberTip);
+
+            // the "Show tooltips" option, the same shape as the row above
+            tooltipsToggle = MakeToggle(
+                LeftMargin,
+                rows[tooltips],
+                plugin.ShowTooltips.Value,
+                OnTooltipsToggle
+            );
+            Text tooltipsLabel = MakeText(
+                "Show tooltips",
+                LeftMargin + 36f,
+                rows[tooltips],
+                380f,
+                26f,
+                15,
+                BodyColor,
+                TextAnchor.MiddleLeft,
+                gui.AveriaSerif
+            );
+            tip.Attach(tooltipsToggle.gameObject, TooltipsTip);
+            tip.Attach(tooltipsLabel.gameObject, TooltipsTip);
 
             // left to right: the reveal toggle, then the two global buttons
             revealButton = MakeButton("Reveal", RightMargin - 200f, rows[actions], 90f, 30f);
@@ -982,6 +1023,11 @@ namespace XRays
         private void OnRememberToggle(bool remember)
         {
             plugin.SetRememberSetup(remember);
+        }
+
+        private void OnTooltipsToggle(bool show)
+        {
+            plugin.ShowTooltips.Value = show;
         }
 
         private void OnRestoreAll()

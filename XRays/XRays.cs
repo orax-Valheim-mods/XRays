@@ -42,6 +42,8 @@ namespace XRays
 
         internal ConfigEntry<float> PanelHeight;
 
+        internal ConfigEntry<bool> ShowTooltips;
+
         internal ConfigEntry<bool> LogCursorInfo;
 
         /// <summary>
@@ -225,6 +227,12 @@ namespace XRays
                     "Vertical size of the control panel in pixels. The rows scroll under the title when they do not fit in it.",
                     new AcceptableValueRange<float>(360f, 1200f)
                 )
+            );
+            ShowTooltips = Config.Bind(
+                "Display",
+                "Show tooltips",
+                true,
+                "Show the little box describing a row of the panel while the pointer rests on it: it appears after a short delay and follows the pointer. Turning this off takes every box away."
             );
             LogCursorInfo = Config.Bind(
                 "Logging",
