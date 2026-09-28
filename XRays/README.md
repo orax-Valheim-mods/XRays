@@ -192,7 +192,7 @@ launch, also editable in game through Jötunn's ConfigManager):
 
 | Section | Option | Default | Description |
 | --- | --- | --- | --- |
-| `Hotkeys` | `Panel` | `F8` | Opens / closes the XRays panel |
+| `General` | `Show/hide panel` | `F8` | Opens / closes the XRays panel (it used to be `Hotkeys` → `Panel`, that line is read once on the next launch and then dropped) |
 | `Hotkeys` | `Close` | `Escape` | Closes the XRays panel |
 | `Hotkeys` | `Terrain` | `F7` | Hides / shows the terrain |
 | `Hotkeys` | `Water` | `F10` | Hides / shows the water |

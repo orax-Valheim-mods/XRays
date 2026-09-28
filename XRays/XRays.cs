@@ -23,8 +23,13 @@ namespace XRays
         internal VisibilityManager Visibility { get; private set; }
         internal Panel Panel { get; private set; }
 
-        // Hotkeys (labels shown in the panel help text)
+        /// <summary>
+        /// Opens / closes the panel. It sits alone in the "General" section,
+        /// it is not one of the options of the world.
+        /// </summary>
         internal ConfigEntry<KeyCode> KeyPanel;
+
+        // Hotkeys (labels shown in the panel help text)
         internal ConfigEntry<KeyCode> KeyClose;
         internal ConfigEntry<KeyCode> KeyTerrain;
         internal ConfigEntry<KeyCode> KeyWater;
@@ -84,12 +89,42 @@ namespace XRays
         {
             Instance = this;
 
+            // The panel key used to live in "Hotkeys" under the name "Panel":
+            // once an entry is not bound anymore BepInEx keeps its line aside,
+            // so the old definition is bound once here to pick up the key the
+            // config file holds for it, then dropped so that line stops being
+            // written. The value only comes over when the player gave that old
+            // line a key of its own and the new setting still has its default.
+            // Nothing is written during that: the whole config is saved once
+            // below, when every entry is bound and the file is complete.
+            const KeyCode defaultPanelKey = KeyCode.F8;
+            bool saveOnConfigSet = Config.SaveOnConfigSet;
+            Config.SaveOnConfigSet = false;
+
+            KeyCode formerPanelKey = Config
+                .Bind(
+                    "Hotkeys",
+                    "Panel",
+                    defaultPanelKey,
+                    "Old name of General -> Show/hide panel, read one moment to carry its key over."
+                )
+                .Value;
+            Config.Remove(new ConfigDefinition("Hotkeys", "Panel"));
+
             KeyPanel = Config.Bind(
-                "Hotkeys",
-                "Panel",
-                KeyCode.F8,
+                "General",
+                "Show/hide panel",
+                defaultPanelKey,
                 "Open / close the XRays control panel."
             );
+
+            if (formerPanelKey != defaultPanelKey && KeyPanel.Value == defaultPanelKey)
+            {
+                KeyPanel.Value = formerPanelKey;
+            }
+
+            Config.SaveOnConfigSet = saveOnConfigSet;
+
             KeyClose = Config.Bind(
                 "Hotkeys",
                 "Close",
@@ -183,6 +218,11 @@ namespace XRays
                 "",
                 "The options kept for the next launch, written as their names (terrain, water, clouds, mist, player, hud and the category keys, comma separated). Filled in by the panel: edited by hand only to force a setup."
             );
+
+            // One write of the config now that every entry is bound: the file
+            // is complete (descriptions included) and the line the panel key
+            // used to have under "Hotkeys" is really gone from it.
+            Config.Save();
 
             Visibility = new VisibilityManager();
             Panel = new Panel(this, Visibility);
