@@ -52,6 +52,10 @@ if ($Target.Equals("Debug")) {
     Copy-Item -Path "$TargetPath\$name.dll" -Destination "$plug" -Force
     Copy-Item -Path "$TargetPath\$name.pdb" -Destination "$plug" -Force
     Copy-Item -Path "$TargetPath\$name.dll.mdb" -Destination "$plug" -Force
+
+    # The Script Engine resolves the references of a script against the
+    # scripts folder, so its assemblies sit beside the plugin
+    Copy-Item -Path "$TargetPath\YamlDotNet.dll" -Destination "$plug" -Force
 }
 
 if($Target.Equals("Release")) {
@@ -62,6 +66,10 @@ if($Target.Equals("Release")) {
     Write-Host "$PackagePath\$TargetAssembly"
     New-Item -Type Directory -Path "$PackagePath\plugins" -Force
     Copy-Item -Path "$TargetPath\$TargetAssembly" -Destination "$PackagePath\plugins\$TargetAssembly" -Force
+
+    # BepInEx resolves the references of a plugin against the folder it sits
+    # in, so the assembly the plugin needs ships beside it
+    Copy-Item -Path "$TargetPath\YamlDotNet.dll" -Destination "$PackagePath\plugins\YamlDotNet.dll" -Force
     Copy-Item -Path "$ProjectPath\README.md" -Destination "$PackagePath\README.md" -Force
     Compress-Archive -Path "$PackagePath\*" -DestinationPath "$TargetPath\$name.zip" -Force
 }

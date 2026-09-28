@@ -45,6 +45,7 @@
 
   <ItemGroup>
     <PackageReference Include="JotunnLib" Version="2.30.2" />
+    <PackageReference Include="YamlDotNet" Version="18.1.0" />
   </ItemGroup>
 
   <PropertyGroup>
