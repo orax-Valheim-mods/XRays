@@ -351,7 +351,7 @@ namespace XRays
                 // itself carries Location. Neither of them belongs to any
                 // other category, so without this one they would survive
                 // everything, Hide all included.
-                // Last in this list: a known component always decides the
+                // Last in this list: a known component decides the
                 // category, so the trees, the rocks and the build pieces
                 // claim their own objects before these two.
                 Types = new[] { typeof(LocationProxy), typeof(Location) }
@@ -659,9 +659,11 @@ namespace XRays
                     continue;
                 }
 
-                // a known game component always decides the category of the
-                // object (that is what the picker does): never claim an object
-                // through its name when a category claims it by component
+                // a known game component decides the category of the object
+                // (that is what the picker does): never claim an object
+                // through its name when a category claims it by component —
+                // except for a name that category gives away (NameExcludes),
+                // which stays free for the name rules
                 if (TypedOwner(t.gameObject) != null)
                 {
                     continue;

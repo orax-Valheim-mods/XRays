@@ -137,12 +137,14 @@ also matches object names — `tree`, `birch`, `beech`, `oak`, `stump`, `stub`,
 `root`, `branch` (case insensitive) — because the small decorative trees, the
 stubs, the roots and the branches only carry a `Destructible`: without that
 name match they would never be hidden with the rest of the forest. An object
-holding a known component is never claimed by the name rule: that component
-decides its category, which keeps the panel label and the hidden group in
-sync. An ancestor holding a known component follows the same rule from the
-other end: it stays with its own category and never takes the objects of the
-same name below it, so the rocks sitting inside a stone structure are hidden
-with the rocks while the structure stays with its own category.
+holding a known component is claimed through that component, never by a name
+rule, which keeps the panel label and the hidden group in sync — unless the
+category hands the name over to another one, which is what Rocks does for the
+ore veins (below). An ancestor holding a known component follows the same
+rule from the other end: it stays with its own category and never takes the
+objects of the same name below it, so the rocks sitting inside a stone
+structure are hidden with the rocks while the structure stays with its own
+category.
 
 The roots a category finds on its own are off limits to the name rules as
 well: `root` also matches `grassroot`, the object the game builds to hold
@@ -189,8 +191,8 @@ when you come close — and that proxy carries none of the components above, so
 the entrance survives every other category, **Hide all** included; the
 locations themselves (huts, ruins, boss rooms, ...) carry `Location`. Both
 components belong to this category, which is listed last: a known component
-always decides the category, so the trees, the rocks and the build pieces
-still claim their own objects first.
+decides the category, so the trees, the rocks and the build pieces still
+claim their own objects first.
 
 ## Installation
 
