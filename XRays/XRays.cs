@@ -29,8 +29,8 @@ namespace XRays
         /// </summary>
         internal ConfigEntry<KeyboardShortcut> KeyPanel;
 
-        // Hotkeys (labels shown in the panel help text). Each one is a key
-        // combination: click it in the config window and press that
+        // Show/hide hotkeys (labels shown in the panel help text). Each one is
+        // a key combination: click it in the config window and press that
         // combination to record a new one.
         internal ConfigEntry<KeyboardShortcut> KeyClose;
         internal ConfigEntry<KeyboardShortcut> KeyTerrain;
@@ -63,6 +63,12 @@ namespace XRays
 
         /// <summary>How often the remembered setup is written back (while it is on).</summary>
         private const float SetupSyncInterval = 0.5f;
+
+        /// <summary>The config section the hotkeys are listed under, in the game's config window.</summary>
+        private const string HotkeySection = "Show/hide hotkeys";
+
+        /// <summary>The config section they used to be listed under.</summary>
+        private const string FormerHotkeySection = "Hotkeys";
 
         /// <summary>Names of the world options, in panel order.</summary>
         private static readonly string[] WorldOptionNames =
@@ -108,13 +114,13 @@ namespace XRays
             KeyboardShortcut defaultPanelShortcut = new KeyboardShortcut(defaultPanelKey);
             KeyCode formerPanelKey = Config
                 .Bind(
-                    "Hotkeys",
+                    FormerHotkeySection,
                     "Panel",
                     defaultPanelKey,
                     "Old name of General -> Show/hide panel, read one moment to carry its key over."
                 )
                 .Value;
-            Config.Remove(new ConfigDefinition("Hotkeys", "Panel"));
+            Config.Remove(new ConfigDefinition(FormerHotkeySection, "Panel"));
 
             KeyPanel = Config.Bind(
                 "General",
@@ -128,56 +134,47 @@ namespace XRays
                 KeyPanel.Value = new KeyboardShortcut(formerPanelKey);
             }
 
-            KeyClose = Config.Bind(
-                "Hotkeys",
+            KeyClose = BindHotkey(
                 "Close",
                 new KeyboardShortcut(KeyCode.Escape),
                 "Close the XRays panel (Escape by default). Click it here and press a key combination to record a new one."
             );
-            KeyTerrain = Config.Bind(
-                "Hotkeys",
+            KeyTerrain = BindHotkey(
                 "Terrain",
                 new KeyboardShortcut(KeyCode.F7),
                 "Hide / show the terrain in order to see through it."
             );
-            KeyWater = Config.Bind(
-                "Hotkeys",
+            KeyWater = BindHotkey(
                 "Water",
                 new KeyboardShortcut(KeyCode.F10),
                 "Hide / show the water surface."
             );
-            KeyClouds = Config.Bind(
-                "Hotkeys",
+            KeyClouds = BindHotkey(
                 "Clouds",
                 new KeyboardShortcut(KeyCode.F6),
                 "Hide / show the clouds in the sky (planes, horizon cylinder, particle clouds)."
             );
-            KeyMist = Config.Bind(
-                "Hotkeys",
+            KeyMist = BindHotkey(
                 "Mist",
                 new KeyboardShortcut(KeyCode.Home),
                 "Hide / show the mist and the fog (ground mist, weather fog, distant fog planes, Mistlands mist) and the distance fog of the game. Home by default: the game already takes F1, F2, F3, F9 and F11, and F5 opens its console."
             );
-            KeyPlayer = Config.Bind(
-                "Hotkeys",
+            KeyPlayer = BindHotkey(
                 "Player",
                 new KeyboardShortcut(KeyCode.F4),
                 "Hide / show your own character (body, armor and held item). The other players belong to the Creatures category."
             );
-            KeyHud = Config.Bind(
-                "Hotkeys",
+            KeyHud = BindHotkey(
                 "HUD",
                 new KeyboardShortcut(KeyCode.F3),
                 "Hide / show the HUD (bars, hot bar, mini map, crosshair, hints). The game's own Ctrl+F3 toggle does the same thing."
             );
-            KeyPick = Config.Bind(
-                "Hotkeys",
+            KeyPick = BindHotkey(
                 "Pick",
                 new KeyboardShortcut(KeyCode.F9),
                 "Hide / show the object under the cursor. Pressing it with the Pick category combination acts on the whole category."
             );
-            KeyReveal = Config.Bind(
-                "Hotkeys",
+            KeyReveal = BindHotkey(
                 "Reveal",
                 new KeyboardShortcut(KeyCode.F2),
                 "Show every checked option at once, then bring that setup back on the next press. With nothing checked it checks them all."
@@ -197,16 +194,17 @@ namespace XRays
             );
             KeyCode formerCategoryModifier = Config
                 .Bind(
-                    "Hotkeys",
+                    FormerHotkeySection,
                     "Category modifier",
                     defaultCategoryModifier,
-                    "Old form of Hotkeys -> Pick category, read one moment to carry its key over."
+                    "Old name of "
+                        + HotkeySection
+                        + " -> Pick category, read one moment to carry its key over."
                 )
                 .Value;
-            Config.Remove(new ConfigDefinition("Hotkeys", "Category modifier"));
+            Config.Remove(new ConfigDefinition(FormerHotkeySection, "Category modifier"));
 
-            KeyPickCategory = Config.Bind(
-                "Hotkeys",
+            KeyPickCategory = BindHotkey(
                 "Pick category",
                 defaultCategoryShortcut,
                 "Hide / show the whole category of the object under the cursor: Pick pressed with that combination. Click it here and press a key combination to record a new one."
@@ -272,6 +270,51 @@ namespace XRays
             GUIManager.OnCustomGUIAvailable += OnCustomGuiAvailable;
 
             Logger.LogInfo(PluginName + " " + PluginVersion + " loaded.");
+        }
+
+        /// <summary>
+        /// Binds a hotkey under the hotkey section, keeping the value the
+        /// config file still holds for it under the section it used to have:
+        /// an entry that is not bound anymore is kept aside by BepInEx, so
+        /// binding it once reads that value back, and dropping it right after
+        /// takes that old line out of the file. The value only comes over when
+        /// the new setting still has its default, so a setting of its own
+        /// always wins.
+        /// </summary>
+        private ConfigEntry<KeyboardShortcut> BindHotkey(
+            string key,
+            KeyboardShortcut defaultValue,
+            string description
+        )
+        {
+            ConfigDefinition formerDefinition = new ConfigDefinition(FormerHotkeySection, key);
+            KeyboardShortcut formerValue = Config
+                .Bind(
+                    FormerHotkeySection,
+                    key,
+                    defaultValue,
+                    "Old section of "
+                        + HotkeySection
+                        + " -> "
+                        + key
+                        + ", read one moment to carry its value over."
+                )
+                .Value;
+            Config.Remove(formerDefinition);
+
+            ConfigEntry<KeyboardShortcut> entry = Config.Bind(
+                HotkeySection,
+                key,
+                defaultValue,
+                description
+            );
+
+            if (!formerValue.Equals(defaultValue) && entry.Value.Equals(defaultValue))
+            {
+                entry.Value = formerValue;
+            }
+
+            return entry;
         }
 
         private void OnDestroy()
