@@ -268,6 +268,7 @@ dropped from the file.
 | `Display` | `Panel height` | `700` | Vertical size of the panel (360 to 1200 pixels); the rows scroll when they do not fit in it |
 | `Display` | `Show tooltips` | `true` | Shows the little box describing a row while the pointer rests on it; off, no box ever appears (same thing as the **Show tooltips** row of the panel) |
 | `Logging` | `Log cursor info` | `false` | Logs the panel's "Under the cursor" text, only while the panel is on screen |
+| `Logging` | `Log reconcile timing` | `false` | Times the phases of the periodic hiding pass: one line per second while options are hidden, with the average, the smallest and the biggest value (milliseconds) |
 | `Setup` | `Remember setup` | `false` | Keeps the options checked in the panel and checks them again on the next launch (same thing as the **Remember this setup** row of the panel) |
 | `Setup` | `Saved setup` | _empty_ | The options kept for the next launch, as a comma separated list of names (`terrain`, `water`, `clouds`, `mist`, `player`, `hud` and the category keys). Filled in by the panel; edited by hand only to force a setup |
 

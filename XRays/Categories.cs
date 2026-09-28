@@ -469,8 +469,12 @@ namespace XRays
                 return roots;
             }
 
+            long stamp = ReconcileTiming.Stamp();
+
             AddProvidedRoots(category, roots, seen);
             AddTypedRoots(category, roots, seen);
+
+            ReconcileTiming.AddSince("of which collect", stamp);
 
             if (category.HasNameMatch)
             {
@@ -658,7 +662,9 @@ namespace XRays
             }
 
             scan = new NameScan { Time = Time.realtimeSinceStartup };
+            long stamp = ReconcileTiming.Stamp();
             AddNamedRoots(category, scan.Roots);
+            ReconcileTiming.AddSince("of which names", stamp);
             NameScans[category.Key] = scan;
             return scan.Roots;
         }

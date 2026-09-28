@@ -46,6 +46,9 @@ namespace XRays
 
         internal ConfigEntry<bool> LogCursorInfo;
 
+        /// <summary>Whether the phases of the reconcile pass are timed to the log.</summary>
+        internal ConfigEntry<bool> LogReconcileTiming;
+
         /// <summary>
         /// Panel toggle: keep the checked options for the next launch (the
         /// setup itself lives in the entry below).
@@ -243,6 +246,12 @@ namespace XRays
                 false,
                 "Write the \"Under the cursor\" info (the exact text shown in the panel) to the BepInEx log while the panel is open, whenever it changes."
             );
+            LogReconcileTiming = Config.Bind(
+                "Logging",
+                "Log reconcile timing",
+                false,
+                "Write the time spent in each phase of the periodic hiding pass to the BepInEx log: one line per second while options are hidden, with the average, the smallest and the biggest value of the passes covered. Nothing is written while this is off."
+            );
             RememberSetup = Config.Bind(
                 "Setup",
                 "Remember setup",
@@ -377,6 +386,8 @@ namespace XRays
         private void Update()
         {
             float deltaTime = Time.deltaTime;
+
+            ReconcileTiming.Enabled = LogReconcileTiming.Value;
 
             if (Visibility != null)
             {

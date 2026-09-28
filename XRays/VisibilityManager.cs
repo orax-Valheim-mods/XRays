@@ -515,6 +515,8 @@ namespace XRays
 
         public void Tick(float deltaTime)
         {
+            ReconcileTiming.Tick(deltaTime);
+
             // cheap when nothing has to be faded, and it picks up an
             // EnemyHud built long after the state was applied
             ApplyEnemyHud();
@@ -547,6 +549,8 @@ namespace XRays
         /// </summary>
         public void Reconcile()
         {
+            ReconcileTiming.Begin();
+
             HashSet<int> waterIds = CollectWaterSurfaceIds();
             Dictionary<int, Renderer> wanted = new Dictionary<int, Renderer>();
             Dictionary<int, InstanceRenderer> wantedInstances =
@@ -579,6 +583,8 @@ namespace XRays
                         waterIds
                     );
                 }
+
+                ReconcileTiming.Mark("terrain");
             }
 
             if (WaterHidden)
@@ -596,6 +602,8 @@ namespace XRays
                 {
                     AddRenderers(root, wanted, wantedInstances, waterIds);
                 }
+
+                ReconcileTiming.Mark("water");
             }
 
             if (CloudsHidden)
@@ -613,6 +621,8 @@ namespace XRays
                     AddWanted(env.m_rainClouds, wanted);
                     AddWanted(env.m_rainCloudsDownside, wanted);
                 }
+
+                ReconcileTiming.Mark("clouds");
             }
 
             if (MistHidden)
@@ -647,6 +657,8 @@ namespace XRays
                 {
                     AddRenderers(mist.gameObject, wanted, wantedInstances, null);
                 }
+
+                ReconcileTiming.Mark("mist");
             }
 
             if (PlayerHidden)
@@ -659,6 +671,8 @@ namespace XRays
                 {
                     AddRenderers(player.gameObject, wanted, wantedInstances, waterIds);
                 }
+
+                ReconcileTiming.Mark("player");
             }
 
             foreach (string key in hiddenCategories)
@@ -696,9 +710,13 @@ namespace XRays
             hiddenRoots.Clear();
             hiddenRoots.UnionWith(roots);
 
+            ReconcileTiming.Mark("roots");
+
             Apply(wanted, wantedInstances);
             ApplyEnemyHud();
             ApplyFog();
+
+            ReconcileTiming.Mark("apply");
         }
 
         // ---------------------------------------------------------------- internals
