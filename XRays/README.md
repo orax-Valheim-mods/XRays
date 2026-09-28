@@ -1,4 +1,4 @@
-# XRays — X-Ray vision
+# XRays
 
 Hides the terrain, the water, the clouds, the mist or world elements so you
 can see through them: trees, rocks, resources, build pieces, creatures,
