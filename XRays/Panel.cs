@@ -525,7 +525,7 @@ namespace XRays
             restoreAll.onClick.AddListener(OnRestoreAll);
             tip.Attach(
                 restoreAll.gameObject,
-                "Everything back on screen: every option unchecked and the objects picked one by one shown again."
+                "Everything back on screen: every option unchecked and the objects picked one by one shown again. It also replaces the setup the reveal would bring back."
             );
 
             // help text

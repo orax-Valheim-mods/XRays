@@ -84,7 +84,8 @@ Two ways to use it:
   options of the list: the objects hidden one by one with the **Pick** hotkey
   and the categories only known under their name keep their state, and anything
   ticked by hand while the reveal is on is kept when the setup comes back. **Hide
-  all** forgets that setup, it replaces it with "everything".
+  all** and **Show all** both forget that setup: they are global commands, so
+  after either of them the reveal starts again from what the list holds.
 * **Remember this setup** (the row under the counters, `Setup` → `Remember
   setup` in the config) keeps the very list of the panel — the world
   options and the ticked categories — and checks those options again the

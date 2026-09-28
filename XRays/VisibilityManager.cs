@@ -328,6 +328,11 @@ namespace XRays
             PlayerHidden = false;
             hiddenCategories.Clear();
             individualObjects.Clear();
+
+            // a global command replaces the setup remembered by the reveal
+            // toggle, exactly like Hide all does
+            revealedFrom = null;
+
             SetHud(false);
             Reconcile();
         }
