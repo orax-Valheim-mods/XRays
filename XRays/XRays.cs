@@ -257,6 +257,9 @@ namespace XRays
 
             Config.Save();
 
+            // the categories are read with the rules of the file from here on
+            NameRulesFile.Load();
+
             Visibility = new VisibilityManager();
             Panel = new Panel(this, Visibility);
 
@@ -371,6 +374,8 @@ namespace XRays
                 Visibility.Tick(deltaTime);
                 SyncRememberedSetup(deltaTime);
             }
+
+            NameRulesFile.Tick(deltaTime);
 
             bool consoleBlocked = Blocked();
             bool blocked = consoleBlocked || (Panel != null && Panel.IsOpen);
