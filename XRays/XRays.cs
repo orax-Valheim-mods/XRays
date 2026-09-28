@@ -59,7 +59,7 @@ namespace XRays
         /// <summary>How often the remembered setup is written back (while it is on).</summary>
         private const float SetupSyncInterval = 0.5f;
 
-        /// <summary>The config section the panel key, Close GUI and the pick category are listed under.</summary>
+        /// <summary>The config section the panel key, Close control panel and the pick category are listed under.</summary>
         private const string GeneralHotkeysSection = "General hotkeys";
 
         /// <summary>Section still read when the panel key and the pick category are bound, to carry their values over.</summary>
@@ -110,18 +110,20 @@ namespace XRays
 
             KeyPanel = BindShortcut(
                 GeneralHotkeysSection,
-                "Show/hide panel",
+                "Open/close control panel",
                 defaultPanelShortcut,
                 "Open / close the XRays control panel. Click it here and press a key combination to record a new one.",
+                new ConfigDefinition(GeneralHotkeysSection, "Show/hide panel"),
                 new ConfigDefinition(FormerGeneralSection, "Show/hide panel"),
                 new ConfigDefinition(FormerHotkeySection, "Panel")
             );
 
             KeyClose = BindShortcut(
                 GeneralHotkeysSection,
-                "Close GUI",
+                "Close control panel",
                 new KeyboardShortcut(KeyCode.Escape),
                 "Close the XRays panel (Escape by default). Click it here and press a key combination to record a new one.",
+                new ConfigDefinition(GeneralHotkeysSection, "Close GUI"),
                 new ConfigDefinition(HotkeySection, "Close"),
                 new ConfigDefinition(FormerHotkeySection, "Close")
             );

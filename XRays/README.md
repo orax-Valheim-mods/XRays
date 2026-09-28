@@ -32,7 +32,7 @@ Two ways to use it:
 | Key | Action |
 | --- | --- |
 | `F8` | Opens / closes the XRays panel |
-| `Escape` | Closes the panel while it is on screen (`Close GUI` in the config, the game pause menu stays closed) |
+| `Escape` | Closes the panel while it is on screen (`Close control panel` in the config, the game pause menu stays closed) |
 | `Not set` | Shows every checked option at once; the next press brings that exact setup back |
 | `Not set` | Hides / shows the **terrain** |
 | `Not set` | Hides / shows the **water** (zones and the sea on the horizon) |
@@ -68,8 +68,8 @@ Two ways to use it:
   disabled (their original state is memorised and restored).
 * **Clouds** takes away everything the environment calls a cloud, wherever it
   sits in its tree: the big planes and the horizon cylinder at its top level,
-  but also the particle clouds and the distant mist clouds, which live deeper
-  inside it and used to stay on screen.
+  but also the particle clouds and the distant mist clouds, which live
+  deeper inside it.
 * **Mist** takes the fog away: the layers of the environment named after a
   mist or a fog (ground mist, weather fog, distant fog planes, ocean mist),
   the mist systems the game runs itself — the Mistlands mist included — and
@@ -204,16 +204,17 @@ exactly as recorded — a modifier key held for something else (the run key
 key first, the way the window shows it (`F9 + LeftControl` for `Ctrl` held
 together with `F9`).
 
-They are listed under the `Show/hide hotkeys` section, except `Close GUI`,
-`Show/hide panel` and `Pick category` which sit together in `General
-hotkeys`. When a setting moves, every line it used to have is read once on
-the next launch, its value is kept, and it is then dropped from the file.
+They are listed under the `Show/hide hotkeys` section, except `Close
+control panel`, `Open/close control panel` and `Pick category` which sit
+together in `General hotkeys`. When a setting moves, every line it used to
+have is read once on the next launch, its value is kept, and it is then
+dropped from the file.
 
 | Section | Option | Default | Description |
 | --- | --- | --- | --- |
-| `General hotkeys` | `Close GUI` | `Escape` | Closes the XRays panel (it used to be `Hotkeys` → `Close`, then `Show/hide hotkeys` → `Close`) |
-| `General hotkeys` | `Show/hide panel` | `F8` | Opens / closes the XRays panel (it used to be `Hotkeys` → `Panel`, then `General` → `Show/hide panel`) |
-| `General hotkeys` | `Pick category` | `F9 + LeftControl` | Hides / shows the whole category of the object under the cursor: `Pick` pressed with that combination (it used to be `Hotkeys` → `Category modifier`, then `Show/hide hotkeys` → `Pick category`, then `General` → `Pick category`) |
+| `General hotkeys` | `Close control panel` | `Escape` | Closes the XRays panel |
+| `General hotkeys` | `Open/close control panel` | `F8` | Opens / closes the XRays panel |
+| `General hotkeys` | `Pick category` | `F9 + LeftControl` | Hides / shows the whole category of the object under the cursor: `Pick` pressed with that combination |
 | `Show/hide hotkeys` | `Terrain` | `Not set` | Hides / shows the terrain |
 | `Show/hide hotkeys` | `Water` | `Not set` | Hides / shows the water |
 | `Show/hide hotkeys` | `Clouds` | `Not set` | Hides / shows the clouds (planes, horizon cylinder, particle clouds) |
