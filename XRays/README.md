@@ -138,7 +138,10 @@ stubs, the roots and the branches only carry a `Destructible`: without that
 name match they would never be hidden with the rest of the forest. An object
 holding a known component is never claimed by the name rule: that component
 decides its category, which keeps the panel label and the hidden group in
-sync.
+sync. An ancestor holding a known component follows the same rule from the
+other end: it stays with its own category and never takes the objects of the
+same name below it, so the rocks sitting inside a stone structure are hidden
+with the rocks while the structure stays with its own category.
 
 The roots a category finds on its own are off limits to the name rules as
 well: `root` also matches `grassroot`, the object the game builds to hold
@@ -146,10 +149,11 @@ every clutter patch, so hiding the Trees would have hidden the whole grass,
 the bushes and the isolated plants with the trees.
 
 **Rocks / ore** follows the same pattern: the ore veins carry `MineRock5` /
-`MineRock`, while a meadow boulder (`Rock_3`, `Rock_4`, `rock4_forest`, ...)
-only carries a `Destructible` and `HugeStone1` / `rockformation1` no component
-the mod knows at all — so the category also matches `rock`, `boulder` and
-`stone` in the object name.
+`MineRock`, while a meadow boulder (`Rock_3`, `Rock_4`, `rock4_forest`, ...),
+a Mistlands rock (`rock_mistlands1`) or a cliff (`cliff_mistlands2`) only
+carries a `Destructible`, and `HugeStone1` / `rockformation1` no component the
+mod knows at all — so the category also matches `rock`, `boulder`, `stone` and
+`cliff` in the object name.
 
 **Spawners** is backed by the game's own spawner components: `CreatureSpawner`
 for the one-shot spawners, `SpawnArea` for the nests, the piles and the evil

@@ -180,10 +180,10 @@ namespace XRays
                 Key = "rocks",
                 Label = "Rocks / ore",
                 Description =
-                    "Boulders, stones and ore veins (MineRock5 and MineRock), matched by component and by name.",
+                    "Boulders, stones, cliffs and ore veins (MineRock5 and MineRock), matched by component and by name.",
                 Types = new[] { typeof(MineRock5), typeof(MineRock) },
-                // a plain boulder only carries a Destructible
-                NameContains = new[] { "rock", "boulder", "stone" }
+                // a plain boulder or a cliff only carries a Destructible
+                NameContains = new[] { "rock", "boulder", "stone", "cliff" }
             },
             new Category
             {
@@ -598,7 +598,8 @@ namespace XRays
                     continue;
                 }
 
-                // only the outermost match becomes a root
+                // a same-named ancestor takes the whole subtree, unless that
+                // ancestor belongs to another category
                 if (HasMatchingParent(t, category))
                 {
                     continue;
@@ -671,11 +672,19 @@ namespace XRays
             return false;
         }
 
+        /// <summary>
+        /// Is there an ancestor taking that object with its own name? An
+        /// ancestor carrying a known component does not count: it belongs to
+        /// another category, it is hidden with that one and it never claims
+        /// the objects of the same name sitting inside it (the picker stops
+        /// on the object it hits, so those report the object, not the
+        /// container).
+        /// </summary>
         private static bool HasMatchingParent(Transform transform, Category category)
         {
             for (Transform parent = transform.parent; parent != null; parent = parent.parent)
             {
-                if (category.MatchesName(parent.name))
+                if (category.MatchesName(parent.name) && !HasBuiltInComponent(parent.gameObject))
                 {
                     return true;
                 }
