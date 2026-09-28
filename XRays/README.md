@@ -204,7 +204,7 @@ launch, also editable in game through Jötunn's ConfigManager):
 | `Hotkeys` | `Reveal` | `F2` | Shows every checked option at once, then brings that exact setup back |
 | `Hotkeys` | `Category modifier` | `LeftControl` | Hold together with `Pick` to act on the whole category |
 | `Selection` | `Max distance` | `100` | Maximum picking distance (meters) |
-| `Display` | `Panel height` | `640` | Vertical size of the panel (360 to 1200 pixels); the rows scroll when they do not fit in it |
+| `Display` | `Panel height` | `700` | Vertical size of the panel (360 to 1200 pixels); the rows scroll when they do not fit in it |
 | `Logging` | `Log cursor info` | `false` | Logs the panel's "Under the cursor" text, only while the panel is on screen |
 | `Setup` | `Remember setup` | `false` | Keeps the options checked in the panel and checks them again on the next launch (same thing as the **Remember this setup** row of the panel) |
 | `Setup` | `Saved setup` | _empty_ | The options kept for the next launch, as a comma separated list of names (`terrain`, `water`, `clouds`, `mist`, `player`, `hud` and the category keys). Filled in by the panel; edited by hand only to force a setup |
