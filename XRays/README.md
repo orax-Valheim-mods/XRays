@@ -32,7 +32,7 @@ Two ways to use it:
 | Key | Action |
 | --- | --- |
 | `F8` | Opens / closes the XRays panel |
-| `Escape` | Closes the panel while it is on screen (the game pause menu stays closed) |
+| `Escape` | Closes the panel while it is on screen (`Close GUI` in the config, the game pause menu stays closed) |
 | `F2` | Shows every checked option at once; the next press brings that exact setup back |
 | `F7` | Hides / shows the **terrain** |
 | `F10` | Hides / shows the **water** (zones and the sea on the horizon) |
@@ -199,16 +199,16 @@ exactly as recorded — a modifier key held for something else (the run key
 key first, the way the window shows it (`F9 + LeftControl` for `Ctrl` held
 together with `F9`).
 
-They are listed under the `Show/hide hotkeys` section, except `Show/hide
-panel` and `Pick category` which sit together in `General hotkeys`. When a
-setting moves, every line it used to have is read once on the next launch,
-its value is kept, and it is then dropped from the file.
+They are listed under the `Show/hide hotkeys` section, except `Close GUI`,
+`Show/hide panel` and `Pick category` which sit together in `General
+hotkeys`. When a setting moves, every line it used to have is read once on
+the next launch, its value is kept, and it is then dropped from the file.
 
 | Section | Option | Default | Description |
 | --- | --- | --- | --- |
+| `General hotkeys` | `Close GUI` | `Escape` | Closes the XRays panel (it used to be `Hotkeys` → `Close`, then `Show/hide hotkeys` → `Close`) |
 | `General hotkeys` | `Show/hide panel` | `F8` | Opens / closes the XRays panel (it used to be `Hotkeys` → `Panel`, then `General` → `Show/hide panel`) |
 | `General hotkeys` | `Pick category` | `F9 + LeftControl` | Hides / shows the whole category of the object under the cursor: `Pick` pressed with that combination (it used to be `Hotkeys` → `Category modifier`, then `Show/hide hotkeys` → `Pick category`, then `General` → `Pick category`) |
-| `Show/hide hotkeys` | `Close` | `Escape` | Closes the XRays panel |
 | `Show/hide hotkeys` | `Terrain` | `F7` | Hides / shows the terrain |
 | `Show/hide hotkeys` | `Water` | `F10` | Hides / shows the water |
 | `Show/hide hotkeys` | `Clouds` | `F6` | Hides / shows the clouds (planes, horizon cylinder, particle clouds) |

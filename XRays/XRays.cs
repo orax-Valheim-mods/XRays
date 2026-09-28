@@ -25,13 +25,16 @@ namespace XRays
 
         /// <summary>
         /// Opens / closes the panel. It sits in the "General hotkeys"
-        /// section with the pick category, away from the plain hotkeys.
+        /// section with Close GUI and the pick category, away from the
+        /// plain hotkeys.
         /// </summary>
         internal ConfigEntry<KeyboardShortcut> KeyPanel;
 
-        // Show/hide hotkeys (labels shown in the panel help text). Each one is
-        // a key combination: click it in the config window and press that
-        // combination to record a new one.
+        // Hotkeys shown in the panel help text, each one a key combination:
+        // click it in the config window and press that combination to record
+        // a new one. The plain ones are listed under "Show/hide hotkeys",
+        // Close GUI and the pick category sit with the panel key under
+        // "General hotkeys".
         internal ConfigEntry<KeyboardShortcut> KeyClose;
         internal ConfigEntry<KeyboardShortcut> KeyTerrain;
         internal ConfigEntry<KeyboardShortcut> KeyWater;
@@ -128,10 +131,17 @@ namespace XRays
                 new ConfigDefinition(FormerHotkeySection, "Panel")
             );
 
-            KeyClose = BindHotkey(
-                "Close",
+            // The close key follows the panel key into the same section and
+            // takes the name it has now, "Close GUI". The two lines it used
+            // to have are read here like every other move, from the newest to
+            // the oldest, and then dropped from the file.
+            KeyClose = BindShortcut(
+                GeneralHotkeysSection,
+                "Close GUI",
                 new KeyboardShortcut(KeyCode.Escape),
-                "Close the XRays panel (Escape by default). Click it here and press a key combination to record a new one."
+                "Close the XRays panel (Escape by default). Click it here and press a key combination to record a new one.",
+                new ConfigDefinition(HotkeySection, "Close"),
+                new ConfigDefinition(FormerHotkeySection, "Close")
             );
             KeyTerrain = BindHotkey(
                 "Terrain",
