@@ -164,12 +164,12 @@ out of the rocks while `MineRock_Stone` and the broken rock pieces stay in.
 
 **Spawners** is backed by the game's own spawner components: `CreatureSpawner`
 for the one-shot spawners, `SpawnArea` for the nests, the piles and the evil
-hearts, `TriggerSpawner` for the holes that open when you come close. A
-spawner carrying none of them (the Elaking hole, a modded spawner) is caught
-by its name instead: every one of those prefabs is named `Spawner...`, taken
-from the start of the name, so the model pieces and the effects whose name
-merely contains "spawner" are never claimed. `SpawnSystem` is deliberately
-left out — it sits on the zone controller, not on a spawner.
+hearts, `TriggerSpawner` for the holes that open when you come close. A modded
+spawner carrying none of them is caught by its name instead: every one of
+those prefabs is named `Spawner...`, taken from the start of the name, so the
+model pieces and the effects whose name merely contains "spawner" are never
+claimed. `SpawnSystem` is deliberately left out — it sits on the zone
+controller, not on a spawner.
 
 Any object that does not belong to those groups automatically creates a
 "name" category (every object sharing the same name).

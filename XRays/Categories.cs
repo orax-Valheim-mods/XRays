@@ -310,10 +310,10 @@ namespace XRays
                     typeof(SpawnArea),
                     typeof(TriggerSpawner)
                 },
-                // a spawner carrying no known component (a modded one, or the
-                // Elaking hole): every one of those prefabs is named
-                // "Spawner...", taken from the start so the model pieces and
-                // the effects whose name only contains that word stay out
+                // a spawner carrying no known component (a modded one): every
+                // one of those prefabs is named "Spawner...", taken from the
+                // start so the model pieces and the effects whose name only
+                // contains that word stay out
                 NameStartsWith = new[] { "spawner" }
             },
             new Category
