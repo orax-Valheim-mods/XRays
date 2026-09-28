@@ -266,39 +266,13 @@ namespace XRays
         public const string CreaturesKey = "creatures";
 
         /// <summary>
-        /// The names of the ore veins and of the giant pieces (the Mistlands
-        /// corpses). An ore vein and a plain stone are marked with the same
-        /// components (MineRock5 / MineRock), so only the name tells them
-        /// apart: they belong to Ores, never to Rocks (see
-        /// Category.NameExcludes). The giant pieces need that very name as
-        /// well: the intact one carries nothing but a Destructible, the
-        /// broken one a MineRock5 like a plain stone. Both categories share
-        /// this very array, so the two lists can never drift apart. "tin"
-        /// carries its underscores: alone it would also claim "ShipSetting"
-        /// and "Chitin"; a giant token is a whole family name, so it claims
-        /// those eight prefabs and none of the Morkhalla railings or of the
-        /// GiantBloodSack item.
-        /// </summary>
-        private static readonly string[] OreNames =
-        {
-            "_copper",
-            "silver",
-            "obsidian",
-            "flametal",
-            "MineRock_Tin",
-            "giant_arm",
-            "giant_brain",
-            "giant_helmet",
-            "giant_ribs",
-            "giant_skull",
-            "giant_sword"
-        };
-
-        /// <summary>
         /// The categories in claim order: when an object is picked or
         /// hidden, the first one holding a known component (or matching the
         /// object name) decides its category. The panel lists them sorted
-        /// by label instead, which is what DisplayOrder holds.
+        /// by label instead, which is what DisplayOrder holds. A category
+        /// holds no name rule of its own here: what it claims by name, and
+        /// what it hands over to another one, lives in the name rules file
+        /// of the mod, under its key (NameRulesFile).
         /// </summary>
         public static readonly Category[] BuiltIn =
         {
@@ -308,19 +282,7 @@ namespace XRays
                 Label = "Trees",
                 Description =
                     "Every tree, plus the stubs, roots and branches that only carry a Destructible, matched by name.",
-                Types = new[] { typeof(TreeBase), typeof(TreeLog) },
-                // small trees, stubs, roots and branches only have a Destructible
-                NameContains = new[]
-                {
-                    "tree",
-                    "birch",
-                    "beech",
-                    "oak",
-                    "stump",
-                    "stub",
-                    "root",
-                    "branch"
-                }
+                Types = new[] { typeof(TreeBase), typeof(TreeLog) }
             },
             new Category
             {
@@ -328,8 +290,6 @@ namespace XRays
                 Label = "Ores",
                 Description =
                     "The ore veins themselves: copper, tin, iron, silver, obsidian, meteorite, flametal, sulfur, gold and coal, plus the pieces of the giant corpses (petrified bones, ancient armour, swords, soft tissue). Only the name tells them apart: the game marks an ore and a plain stone with the same components, and a broken giant piece carries MineRock5 like a plain stone.",
-                // only the name tells an ore vein from a mineable stone
-                NameContains = OreNames
             },
             new Category
             {
@@ -337,11 +297,7 @@ namespace XRays
                 Label = "Rocks",
                 Description =
                     "Boulders, stones and cliffs, plus every mineable rock that is no ore (MineRock5 and MineRock), matched by component and by name.",
-                Types = new[] { typeof(MineRock5), typeof(MineRock) },
-                // a plain boulder or a cliff only carries a Destructible
-                NameContains = new[] { "rock", "boulder", "stone", "cliff" },
-                // the ore veins carry those very components: they are Ores
-                NameExcludes = OreNames
+                Types = new[] { typeof(MineRock5), typeof(MineRock) }
             },
             new Category
             {
@@ -401,17 +357,7 @@ namespace XRays
                 // (TriggerSpawner). SpawnSystem is on the zone controller,
                 // never on a spawner itself, and the fire / smoke spawners
                 // are effects: neither belongs here.
-                Types = new[]
-                {
-                    typeof(CreatureSpawner),
-                    typeof(SpawnArea),
-                    typeof(TriggerSpawner)
-                },
-                // a spawner carrying no known component (a modded one): every
-                // one of those prefabs is named "Spawner...", taken from the
-                // start so the model pieces and the effects whose name only
-                // contains that word stay out
-                NameStartsWith = new[] { "spawner" }
+                Types = new[] { typeof(CreatureSpawner), typeof(SpawnArea), typeof(TriggerSpawner) }
             },
             new Category
             {
@@ -421,18 +367,6 @@ namespace XRays
                     "The clutter growing in the world: bushes, grass patches, ferns, reeds, moss, mushrooms and flowers.",
                 // the grass patches are drawn by InstanceRenderer, not by a Renderer
                 Types = new[] { typeof(InstanceRenderer) },
-                // bushes and isolated plants only carry a Destructible
-                NameContains = new[]
-                {
-                    "bush",
-                    "shrub",
-                    "grass",
-                    "fern",
-                    "reed",
-                    "moss",
-                    "mushroom",
-                    "flower"
-                },
                 // the clutter spawned by the ClutterSystem lives under "grassroot"
                 RootProvider = GrassRoots
             },
