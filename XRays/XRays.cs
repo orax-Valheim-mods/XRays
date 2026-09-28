@@ -24,8 +24,8 @@ namespace XRays
         internal Panel Panel { get; private set; }
 
         /// <summary>
-        /// Opens / closes the panel. It sits alone in the "General" section,
-        /// it is not one of the options of the world.
+        /// Opens / closes the panel. It sits in the "General" section with
+        /// the pick category, away from the plain hotkeys.
         /// </summary>
         internal ConfigEntry<KeyboardShortcut> KeyPanel;
 
@@ -63,6 +63,9 @@ namespace XRays
 
         /// <summary>How often the remembered setup is written back (while it is on).</summary>
         private const float SetupSyncInterval = 0.5f;
+
+        /// <summary>The config section the panel key and the pick category are listed under.</summary>
+        private const string GeneralSection = "General";
 
         /// <summary>The config section the hotkeys are listed under, in the game's config window.</summary>
         private const string HotkeySection = "Show/hide hotkeys";
@@ -123,7 +126,7 @@ namespace XRays
             Config.Remove(new ConfigDefinition(FormerHotkeySection, "Panel"));
 
             KeyPanel = Config.Bind(
-                "General",
+                GeneralSection,
                 "Show/hide panel",
                 defaultPanelShortcut,
                 "Open / close the XRays control panel. Click it here and press a key combination to record a new one."
@@ -180,12 +183,14 @@ namespace XRays
                 "Show every checked option at once, then bring that setup back on the next press. With nothing checked it checks them all."
             );
 
-            // The pick category used to be a bare key held together with Pick
-            // ("Category modifier"): it becomes a combination of its own, set
-            // the same way as every other hotkey. That old line is read once
-            // and dropped, and the key it held becomes the modifiers of the
-            // recorded combination when it is not the default one (None keeps
-            // the category out of reach, as it did before).
+            // The pick category has moved twice: it started as a bare key
+            // held together with Pick ("Category modifier"), then became a
+            // combination of its own among the hotkeys, and it now sits next
+            // to the panel key in General. Every line it had is read once
+            // here and dropped, and its value only comes over while the new
+            // setting still has its default: a recorded combination wins over
+            // the bare key it came from (None keeps the category out of
+            // reach, as it did before).
             const KeyCode defaultCategoryKey = KeyCode.F9;
             const KeyCode defaultCategoryModifier = KeyCode.LeftControl;
             KeyboardShortcut defaultCategoryShortcut = new KeyboardShortcut(
@@ -198,27 +203,44 @@ namespace XRays
                     "Category modifier",
                     defaultCategoryModifier,
                     "Old name of "
-                        + HotkeySection
+                        + GeneralSection
                         + " -> Pick category, read one moment to carry its key over."
                 )
                 .Value;
             Config.Remove(new ConfigDefinition(FormerHotkeySection, "Category modifier"));
 
-            KeyPickCategory = BindHotkey(
+            KeyboardShortcut formerHotkeyCategory = Config
+                .Bind(
+                    HotkeySection,
+                    "Pick category",
+                    defaultCategoryShortcut,
+                    "Old section of "
+                        + GeneralSection
+                        + " -> Pick category, read one moment to carry its value over."
+                )
+                .Value;
+            Config.Remove(new ConfigDefinition(HotkeySection, "Pick category"));
+
+            KeyPickCategory = Config.Bind(
+                GeneralSection,
                 "Pick category",
                 defaultCategoryShortcut,
                 "Hide / show the whole category of the object under the cursor: Pick pressed with that combination. Click it here and press a key combination to record a new one."
             );
 
-            if (
-                formerCategoryModifier != defaultCategoryModifier
-                && KeyPickCategory.Value.Equals(defaultCategoryShortcut)
-            )
+            if (KeyPickCategory.Value.Equals(defaultCategoryShortcut))
             {
-                KeyPickCategory.Value =
-                    formerCategoryModifier == KeyCode.None
-                        ? KeyboardShortcut.Empty
-                        : new KeyboardShortcut(defaultCategoryKey, formerCategoryModifier);
+                if (!formerHotkeyCategory.Equals(defaultCategoryShortcut))
+                {
+                    KeyPickCategory.Value = formerHotkeyCategory;
+                }
+                else if (formerCategoryModifier != defaultCategoryModifier)
+                {
+                    KeyPickCategory.Value =
+                        formerCategoryModifier == KeyCode.None
+                            ? KeyboardShortcut.Empty
+                            : new KeyboardShortcut(defaultCategoryKey, formerCategoryModifier);
+                }
             }
 
             PickDistance = Config.Bind(

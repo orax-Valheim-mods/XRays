@@ -200,12 +200,14 @@ key first, the way the window shows it (`F9 + LeftControl` for `Ctrl` held
 together with `F9`).
 
 They are listed under the `Show/hide hotkeys` section, which used to be
-simply called `Hotkeys`: those old lines are read once on the next launch,
-their values are kept, and they are then dropped from the file.
+simply called `Hotkeys`, except `Pick category` which sits in `General`
+next to the panel key: every line they used to have is read once on the
+next launch, its value is kept, and it is then dropped from the file.
 
 | Section | Option | Default | Description |
 | --- | --- | --- | --- |
 | `General` | `Show/hide panel` | `F8` | Opens / closes the XRays panel (it used to be `Hotkeys` → `Panel`, that line is read once on the next launch and then dropped) |
+| `General` | `Pick category` | `F9 + LeftControl` | Hides / shows the whole category of the object under the cursor: `Pick` pressed with that combination (it used to be `Hotkeys` → `Category modifier`, then `Show/hide hotkeys` → `Pick category`: both lines are read once on the next launch and then dropped) |
 | `Show/hide hotkeys` | `Close` | `Escape` | Closes the XRays panel |
 | `Show/hide hotkeys` | `Terrain` | `F7` | Hides / shows the terrain |
 | `Show/hide hotkeys` | `Water` | `F10` | Hides / shows the water |
@@ -215,7 +217,6 @@ their values are kept, and they are then dropped from the file.
 | `Show/hide hotkeys` | `HUD` | `F3` | Hides / shows the HUD (the game's own `Ctrl` + `F3` does the same) |
 | `Show/hide hotkeys` | `Pick` | `F9` | Hides / shows the object under the cursor |
 | `Show/hide hotkeys` | `Reveal` | `F2` | Shows every checked option at once, then brings that exact setup back |
-| `Show/hide hotkeys` | `Pick category` | `F9 + LeftControl` | Hides / shows the whole category of the object under the cursor: `Pick` pressed with that combination (it used to be `Category modifier`, a bare key held together with `Pick`, that line is read once on the next launch and then dropped) |
 | `Selection` | `Max distance` | `100` | Maximum picking distance (meters) |
 | `Display` | `Panel height` | `700` | Vertical size of the panel (360 to 1200 pixels); the rows scroll when they do not fit in it |
 | `Logging` | `Log cursor info` | `false` | Logs the panel's "Under the cursor" text, only while the panel is on screen |
