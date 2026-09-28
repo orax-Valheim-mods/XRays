@@ -15,6 +15,14 @@ namespace XRays
 
         public string Key;
         public string Label;
+
+        /// <summary>
+        /// What the panel shows in its little box when the pointer stays on
+        /// the row of that category. Categories created from an object name
+        /// have none, they never get a row of their own.
+        /// </summary>
+        public string Description;
+
         public Type[] Types;
 
         /// <summary>
@@ -151,6 +159,8 @@ namespace XRays
             {
                 Key = "trees",
                 Label = "Trees",
+                Description =
+                    "Every tree, plus the stubs, roots and branches that only carry a Destructible, matched by name.",
                 Types = new[] { typeof(TreeBase), typeof(TreeLog) },
                 // small trees, stubs, roots and branches only have a Destructible
                 NameContains = new[]
@@ -169,6 +179,8 @@ namespace XRays
             {
                 Key = "rocks",
                 Label = "Rocks / ore",
+                Description =
+                    "Boulders, stones and ore veins (MineRock5 and MineRock), matched by component and by name.",
                 Types = new[] { typeof(MineRock5), typeof(MineRock) },
                 // a plain boulder only carries a Destructible
                 NameContains = new[] { "rock", "boulder", "stone" }
@@ -177,18 +189,24 @@ namespace XRays
             {
                 Key = "pickable",
                 Label = "Pickable resources",
+                Description =
+                    "What can be gathered by hand: berries, mushrooms, feathers and the rest (Pickable).",
                 Types = new[] { typeof(Pickable), typeof(PickableItem) }
             },
             new Category
             {
                 Key = "build",
                 Label = "Build pieces",
+                Description =
+                    "Everything that can be built by hand: walls, floors, furniture and workstations (Piece and WearNTear).",
                 Types = new[] { typeof(WearNTear), typeof(Piece) }
             },
             new Category
             {
                 Key = CreaturesKey,
                 Label = "Creatures",
+                Description =
+                    "The animals and the monsters (Character), plus the fish and the birds, with the bars the game draws over them.",
                 // Character covers the animals and the monsters; a swimming
                 // fish carries no Character at all, only Fish + ItemDrop,
                 // and would be reported as a ground item instead. The ambient
@@ -202,18 +220,24 @@ namespace XRays
             {
                 Key = "items",
                 Label = "Ground items",
+                Description =
+                    "What lies on the ground: every dropped item and resource (ItemDrop).",
                 Types = new[] { typeof(ItemDrop) }
             },
             new Category
             {
                 Key = "plants",
                 Label = "Crops",
+                Description =
+                    "The plants you grow: carrots, turnips, onions, anything carrying a Plant component.",
                 Types = new[] { typeof(Plant) }
             },
             new Category
             {
                 Key = "spawners",
                 Label = "Spawners",
+                Description =
+                    "The one-shot spawners, the nests and piles, the evil hearts and the holes that open on approach.",
                 // the one-shot spawners, the nests / piles / evil hearts
                 // (SpawnArea) and the holes that open on approach
                 // (TriggerSpawner). SpawnSystem is on the zone controller,
@@ -235,6 +259,8 @@ namespace XRays
             {
                 Key = "clutter",
                 Label = "Grass / vegetation",
+                Description =
+                    "The clutter growing in the world: bushes, grass patches, ferns, reeds, moss, mushrooms and flowers.",
                 // the grass patches are drawn by InstanceRenderer, not by a Renderer
                 Types = new[] { typeof(InstanceRenderer) },
                 // bushes and isolated plants only carry a Destructible
@@ -256,6 +282,8 @@ namespace XRays
             {
                 Key = "locations",
                 Label = "Locations",
+                Description =
+                    "The structures the game places on its own: ruins, dungeon entrances and everything a Location carries.",
                 // the structures the game places on its own: a dungeon
                 // entrance sits below a LocationProxy (the object that spawns
                 // the location when the player comes close), and the location

@@ -16,7 +16,10 @@ Two ways to use it:
   were hiding, the next press turns it into **Restore** and brings that exact
   setup back — with nothing checked the first press checks every option
   instead), **Hide all** (everything in that list at once) and **Show all**
-  (back to the normal world). The title and the **Close** button stay on top
+  (back to the normal world). Staying on any row or button with the mouse
+  for a moment brings up a little box describing it: the box follows the
+  pointer and goes away as soon as the pointer leaves. The title and the
+  **Close** button stay on top
   of the panel while the list scrolls under them, with the mouse wheel or
   the scrollbar on the right; the height of the panel itself is the
   `Display` → `Panel height` option. The line above those buttons sums the

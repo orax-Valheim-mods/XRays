@@ -35,6 +35,10 @@ namespace XRays
         private const float RefreshInterval = 0.4f;
         private const float CountInterval = 1.5f;
 
+        /// <summary>What the "Remember this setup" row describes itself with.</summary>
+        private const string RememberTip =
+            "Keeps the ticked options for the next launch: they are checked again when the game starts. Turning it off starts the next launch with nothing checked.";
+
         /// <summary>Limits of the "Panel height" option (vertical size).</summary>
         private const float MinPanelHeight = 360f;
 
@@ -104,10 +108,14 @@ namespace XRays
         private Button revealButton;
         private Text cursorText;
         private Text objectsText;
+
+        /// <summary>The little box describing the element under the mouse.</summary>
+        private Tooltip tip;
+
         private float refreshTimer;
         private float countTimer;
 
-        private Color BodyColor => new Color(0.93f, 0.88f, 0.79f, 1f);
+        internal static readonly Color BodyColor = new Color(0.93f, 0.88f, 0.79f, 1f);
 
         /// <summary>Where the next element is created (header or content).</summary>
         private Transform Parent => container != null ? container : root.transform;
@@ -168,6 +176,11 @@ namespace XRays
             }
 
             GUIManager.BlockInput(false);
+
+            if (tip != null)
+            {
+                tip.Reset();
+            }
         }
 
         /// <summary>The scene changed: the panel was destroyed with the game GUI.</summary>
@@ -175,6 +188,7 @@ namespace XRays
         {
             root = null;
             container = null;
+            tip = null;
             viewportRect = null;
             contentRect = null;
             scrollbarRect = null;
@@ -214,6 +228,8 @@ namespace XRays
                 countTimer = 0f;
                 RefreshCounts();
             }
+
+            tip.Tick(deltaTime);
         }
 
         /// <summary>Light refresh (toggles, "under the cursor" line).</summary>
@@ -344,6 +360,7 @@ namespace XRays
 
             categoryRows.Clear();
             container = root.transform;
+            tip = new Tooltip(root.GetComponent<RectTransform>());
 
             // title + close button: they belong to the header, they never
             // scroll out of sight
@@ -360,6 +377,7 @@ namespace XRays
             );
             Button close = MakeButton("Close", RightMargin, rows[0], 96f, 30f);
             close.onClick.AddListener(Close);
+            tip.Attach(close.gameObject, "Closes the panel (Escape by default).");
 
             // everything below the header lives in the scrolling area
             MakeScrollArea();
@@ -440,6 +458,9 @@ namespace XRays
                     gui.AveriaSerif,
                     true
                 );
+                tip.Attach(row.Toggle.gameObject, category.Description);
+                tip.Attach(row.Label.gameObject, category.Description);
+                tip.Attach(row.Count.gameObject, category.Description);
                 categoryRows.Add(row);
             }
 
@@ -461,6 +482,10 @@ namespace XRays
                 TextAnchor.MiddleLeft,
                 gui.AveriaSerif
             );
+            tip.Attach(
+                objectsText.gameObject,
+                "The object roots currently invisible (ticked categories, objects picked one by one, Hide all), and what is hidden without a row of its own in this list."
+            );
 
             // the setup kept for the next launch: shaped like a category row
             // so the whole list stays one single list of options
@@ -470,7 +495,7 @@ namespace XRays
                 plugin.RememberSetup.Value,
                 OnRememberToggle
             );
-            MakeText(
+            Text rememberLabel = MakeText(
                 "Remember this setup for the next launch",
                 LeftMargin + 36f,
                 rows[remember],
@@ -481,16 +506,27 @@ namespace XRays
                 TextAnchor.MiddleLeft,
                 gui.AveriaSerif
             );
+            tip.Attach(rememberToggle.gameObject, RememberTip);
+            tip.Attach(rememberLabel.gameObject, RememberTip);
 
             // left to right: the reveal toggle, then the two global buttons
             revealButton = MakeButton("Reveal", RightMargin - 200f, rows[actions], 90f, 30f);
             revealButton.onClick.AddListener(OnToggleReveal);
+            tip.Attach(revealButton.gameObject, RevealTip);
 
             Button hideAll = MakeButton("Hide all", RightMargin - 100f, rows[actions], 90f, 30f);
             hideAll.onClick.AddListener(OnHideAll);
+            tip.Attach(
+                hideAll.gameObject,
+                "Checks every option of the list at once: terrain, water, clouds, mist, character, HUD and every category. It also replaces the setup the reveal would bring back."
+            );
 
             Button restoreAll = MakeButton("Show all", RightMargin, rows[actions], 90f, 30f);
             restoreAll.onClick.AddListener(OnRestoreAll);
+            tip.Attach(
+                restoreAll.gameObject,
+                "Everything back on screen: every option unchecked and the objects picked one by one shown again."
+            );
 
             // help text
             string help = PluginHelpText();
@@ -518,12 +554,13 @@ namespace XRays
         /// </summary>
         private float MakeLayerOptions(GUIManager gui, float top)
         {
-            // created with their label, measured, then placed
+            // created with their label and description, measured, then placed
             LayerOption[] options =
             {
                 MakeLayerOption(
                     gui,
                     "Clouds",
+                    "The clouds of the sky: the big planes and the horizon cylinder, the particle clouds and the distant mist clouds.",
                     visibility.CloudsHidden,
                     v =>
                     {
@@ -534,6 +571,7 @@ namespace XRays
                 MakeLayerOption(
                     gui,
                     "HUD",
+                    "The whole in-game HUD: health, stamina and eitr bars, hot bar, mini map, crosshair, hints and panels.",
                     visibility.HudHidden,
                     v =>
                     {
@@ -544,6 +582,7 @@ namespace XRays
                 MakeLayerOption(
                     gui,
                     "Mist",
+                    "The mist and the fog: ground mist, weather fog, distant fog planes, ocean mist and the distance fog of the game.",
                     visibility.MistHidden,
                     v =>
                     {
@@ -554,6 +593,7 @@ namespace XRays
                 MakeLayerOption(
                     gui,
                     "Player",
+                    "Your own character — body, armor and held item — out of the picture. Renderers only; the camera and the colliders stay.",
                     visibility.PlayerHidden,
                     v =>
                     {
@@ -564,6 +604,7 @@ namespace XRays
                 MakeLayerOption(
                     gui,
                     "Terrain",
+                    "The ground itself: the loaded zones, the sea bed and the horizon, taken away so you can see through it.",
                     visibility.TerrainHidden,
                     v =>
                     {
@@ -574,6 +615,7 @@ namespace XRays
                 MakeLayerOption(
                     gui,
                     "Water",
+                    "The water: the surface of the loaded zones and the sea drawn beyond them.",
                     visibility.WaterHidden,
                     v =>
                     {
@@ -616,10 +658,15 @@ namespace XRays
             return top;
         }
 
-        /// <summary>One toggle and its label, measured for the flow layout.</summary>
+        /// <summary>
+        /// One toggle and its label, measured for the flow layout. Both of
+        /// them carry the description given here, shown while the pointer
+        /// stays on either.
+        /// </summary>
         private LayerOption MakeLayerOption(
             GUIManager gui,
             string label,
+            string tipText,
             bool shown,
             System.Action<bool> onChanged
         )
@@ -649,6 +696,8 @@ namespace XRays
             option.Label.rectTransform.sizeDelta = new Vector2(words + 6f, 26f);
 
             option.Width = ToggleSize + LayerLabelGap + words;
+            tip.Attach(option.Toggle.gameObject, tipText);
+            tip.Attach(option.Label.gameObject, tipText);
             return option;
         }
 
@@ -824,6 +873,22 @@ namespace XRays
                 -(headerHeight + viewportHeight / 2f)
             );
             scrollbarRect.sizeDelta = new Vector2(ScrollbarWidth, viewportHeight);
+        }
+
+        /// <summary>
+        /// What the reveal button describes itself with: it says what the
+        /// next press would do, which changes with the state of the panel.
+        /// </summary>
+        private string RevealTip()
+        {
+            if (visibility.IsRevealing)
+            {
+                return "Brings back the setup that was on before the reveal; anything ticked while the reveal was on is kept.";
+            }
+
+            return visibility.AnyOptionChecked
+                ? "Shows everything the checked options are hiding; the next press brings that exact setup back."
+                : "Nothing is checked: the first press checks every option of the list instead.";
         }
 
         /// <summary>
