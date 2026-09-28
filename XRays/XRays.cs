@@ -143,44 +143,49 @@ namespace XRays
                 new ConfigDefinition(HotkeySection, "Close"),
                 new ConfigDefinition(FormerHotkeySection, "Close")
             );
+            // None of these has a key of its own: every one of them starts
+            // "Not set", so a fresh install presses nothing and each one
+            // gets the combination recorded for it in the config window. A
+            // config file that already holds a combination keeps it, only
+            // the entries missing from the file fall back to the default.
             KeyTerrain = BindHotkey(
                 "Terrain",
-                new KeyboardShortcut(KeyCode.F7),
+                KeyboardShortcut.Empty,
                 "Hide / show the terrain in order to see through it."
             );
             KeyWater = BindHotkey(
                 "Water",
-                new KeyboardShortcut(KeyCode.F10),
+                KeyboardShortcut.Empty,
                 "Hide / show the water surface."
             );
             KeyClouds = BindHotkey(
                 "Clouds",
-                new KeyboardShortcut(KeyCode.F6),
+                KeyboardShortcut.Empty,
                 "Hide / show the clouds in the sky (planes, horizon cylinder, particle clouds)."
             );
             KeyMist = BindHotkey(
                 "Mist",
-                new KeyboardShortcut(KeyCode.Home),
-                "Hide / show the mist and the fog (ground mist, weather fog, distant fog planes, Mistlands mist) and the distance fog of the game. Home by default: the game already takes F1, F2, F3, F9 and F11, and F5 opens its console."
+                KeyboardShortcut.Empty,
+                "Hide / show the mist and the fog (ground mist, weather fog, distant fog planes, Mistlands mist) and the distance fog of the game. The game itself already takes F1, F2, F3, F9 and F11, and F5 opens its console: record a key it does not use."
             );
             KeyPlayer = BindHotkey(
                 "Player",
-                new KeyboardShortcut(KeyCode.F4),
+                KeyboardShortcut.Empty,
                 "Hide / show your own character (body, armor and held item). The other players belong to the Creatures category."
             );
             KeyHud = BindHotkey(
                 "HUD",
-                new KeyboardShortcut(KeyCode.F3),
+                KeyboardShortcut.Empty,
                 "Hide / show the HUD (bars, hot bar, mini map, crosshair, hints). The game's own Ctrl+F3 toggle does the same thing."
             );
             KeyPick = BindHotkey(
                 "Pick",
-                new KeyboardShortcut(KeyCode.F9),
+                KeyboardShortcut.Empty,
                 "Hide / show the object under the cursor. Pressing it with the Pick category combination acts on the whole category."
             );
             KeyReveal = BindHotkey(
                 "Reveal",
-                new KeyboardShortcut(KeyCode.F2),
+                KeyboardShortcut.Empty,
                 "Show every checked option at once, then bring that setup back on the next press. With nothing checked it checks them all."
             );
 

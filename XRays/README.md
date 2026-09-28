@@ -23,25 +23,30 @@ Two ways to use it:
   panel up: `Hidden objects: N` is the number of object roots currently
   invisible — ticked categories, objects picked one by one, **Hide all** —
   while `Other: M` counts what is hidden without a row of its own in the
-  list (the objects picked with `F9` and the categories created on the fly).
+  list (the objects picked one by one and the categories created on the fly).
 * **The keyboard hotkeys**: they act directly on the element under the
   cursor.
 
-## Hotkeys (defaults, changeable in the config)
+## Hotkeys (changeable in the config)
 
 | Key | Action |
 | --- | --- |
 | `F8` | Opens / closes the XRays panel |
 | `Escape` | Closes the panel while it is on screen (`Close GUI` in the config, the game pause menu stays closed) |
-| `F2` | Shows every checked option at once; the next press brings that exact setup back |
-| `F7` | Hides / shows the **terrain** |
-| `F10` | Hides / shows the **water** (zones and the sea on the horizon) |
-| `F6` | Hides / shows the **clouds** of the sky (planes, horizon cylinder, particle clouds) |
-| `Home` | Hides / shows the **mist** and the fog (ground mist, weather fog, distant fog planes, distance fog) |
-| `F4` | Hides / shows **your own character** (body, armor and held item) |
-| `F3` | Hides / shows the **HUD** (bars, hot bar, mini map, crosshair, hints) |
-| `F9` | Hides / shows **the object under the cursor** |
+| `Not set` | Shows every checked option at once; the next press brings that exact setup back |
+| `Not set` | Hides / shows the **terrain** |
+| `Not set` | Hides / shows the **water** (zones and the sea on the horizon) |
+| `Not set` | Hides / shows the **clouds** of the sky (planes, horizon cylinder, particle clouds) |
+| `Not set` | Hides / shows the **mist** and the fog (ground mist, weather fog, distant fog planes, distance fog) |
+| `Not set` | Hides / shows **your own character** (body, armor and held item) |
+| `Not set` | Hides / shows the **HUD** (bars, hot bar, mini map, crosshair, hints) |
+| `Not set` | Hides / shows **the object under the cursor** |
 | `Ctrl` + `F9` | Hides / shows the **whole category** of that object |
+
+* The eight `Not set` rows come unbound: a fresh install presses nothing for
+  them, each one gets the combination recorded for it in the config window
+  (`F1`), by clicking the hotkey and pressing it. The help line of the panel
+  only lists the hotkeys that have a key.
 
 * Picking is a ray cast from the camera (screen center when the pointer is
   locked, otherwise the real mouse position), up to a maximum distance of
@@ -73,9 +78,9 @@ Two ways to use it:
   names (`FogClouds`, `mistcloud`): the **Clouds** option and the **Mist**
   option both take them, so they disappear with either of the two.
 * The reveal / restore toggle (its button and its hotkey) only deals with the
-  options of the list: the objects hidden one by one with `F9` and the
-  categories only known under their name keep their state, and anything ticked
-  by hand while the reveal is on is kept when the setup comes back. **Hide
+  options of the list: the objects hidden one by one with the **Pick** hotkey
+  and the categories only known under their name keep their state, and anything
+  ticked by hand while the reveal is on is kept when the setup comes back. **Hide
   all** forgets that setup, it replaces it with "everything".
 * **Remember this setup** (the row under the counters, `Setup` → `Remember
   setup` in the config) keeps the very list of the panel — the world
@@ -209,14 +214,14 @@ the next launch, its value is kept, and it is then dropped from the file.
 | `General hotkeys` | `Close GUI` | `Escape` | Closes the XRays panel (it used to be `Hotkeys` → `Close`, then `Show/hide hotkeys` → `Close`) |
 | `General hotkeys` | `Show/hide panel` | `F8` | Opens / closes the XRays panel (it used to be `Hotkeys` → `Panel`, then `General` → `Show/hide panel`) |
 | `General hotkeys` | `Pick category` | `F9 + LeftControl` | Hides / shows the whole category of the object under the cursor: `Pick` pressed with that combination (it used to be `Hotkeys` → `Category modifier`, then `Show/hide hotkeys` → `Pick category`, then `General` → `Pick category`) |
-| `Show/hide hotkeys` | `Terrain` | `F7` | Hides / shows the terrain |
-| `Show/hide hotkeys` | `Water` | `F10` | Hides / shows the water |
-| `Show/hide hotkeys` | `Clouds` | `F6` | Hides / shows the clouds (planes, horizon cylinder, particle clouds) |
-| `Show/hide hotkeys` | `Mist` | `Home` | Hides / shows the mist and the fog, and the distance fog of the game (the game already uses `F1`, `F2`, `F3`, `F9` and `F11`) |
-| `Show/hide hotkeys` | `Player` | `F4` | Hides / shows your own character (the Creatures category never includes it) |
-| `Show/hide hotkeys` | `HUD` | `F3` | Hides / shows the HUD (the game's own `Ctrl` + `F3` does the same) |
-| `Show/hide hotkeys` | `Pick` | `F9` | Hides / shows the object under the cursor |
-| `Show/hide hotkeys` | `Reveal` | `F2` | Shows every checked option at once, then brings that exact setup back |
+| `Show/hide hotkeys` | `Terrain` | `Not set` | Hides / shows the terrain |
+| `Show/hide hotkeys` | `Water` | `Not set` | Hides / shows the water |
+| `Show/hide hotkeys` | `Clouds` | `Not set` | Hides / shows the clouds (planes, horizon cylinder, particle clouds) |
+| `Show/hide hotkeys` | `Mist` | `Not set` | Hides / shows the mist and the fog, and the distance fog of the game (the game itself already uses `F1`, `F2`, `F3`, `F9` and `F11`) |
+| `Show/hide hotkeys` | `Player` | `Not set` | Hides / shows your own character (the Creatures category never includes it) |
+| `Show/hide hotkeys` | `HUD` | `Not set` | Hides / shows the HUD (the game's own `Ctrl` + `F3` does the same) |
+| `Show/hide hotkeys` | `Pick` | `Not set` | Hides / shows the object under the cursor |
+| `Show/hide hotkeys` | `Reveal` | `Not set` | Shows every checked option at once, then brings that exact setup back |
 | `Selection` | `Max distance` | `100` | Maximum picking distance (meters) |
 | `Display` | `Panel height` | `700` | Vertical size of the panel (360 to 1200 pixels); the rows scroll when they do not fit in it |
 | `Logging` | `Log cursor info` | `false` | Logs the panel's "Under the cursor" text, only while the panel is on screen |

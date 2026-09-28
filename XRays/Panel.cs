@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using BepInEx.Configuration;
 using Jotunn.Managers;
 using UnityEngine;
 using UnityEngine.UI;
@@ -824,30 +825,64 @@ namespace XRays
             scrollbarRect.sizeDelta = new Vector2(ScrollbarWidth, viewportHeight);
         }
 
+        /// <summary>
+        /// The help line of the panel: the hotkeys that have a key, as
+        /// "key : label", three per line and the two long ones on a line of
+        /// their own. A hotkey left "Not set" is left out of the line, there
+        /// is no key to show for it.
+        /// </summary>
         private string PluginHelpText()
         {
-            return XRays.Instance.KeyPanel.Value
-                + " : panel   ·   "
-                + XRays.Instance.KeyClose.Value
-                + " : close   ·   "
-                + XRays.Instance.KeyHud.Value
-                + " : hud\n"
-                + XRays.Instance.KeyTerrain.Value
-                + " : terrain   ·   "
-                + XRays.Instance.KeyWater.Value
-                + " : water   ·   "
-                + XRays.Instance.KeyClouds.Value
-                + " : clouds\n"
-                + XRays.Instance.KeyMist.Value
-                + " : mist   ·   "
-                + XRays.Instance.KeyPlayer.Value
-                + " : player   ·   "
-                + XRays.Instance.KeyReveal.Value
-                + " : reveal / restore\n"
-                + XRays.Instance.KeyPick.Value
-                + " : hide object under cursor\n"
-                + XRays.Instance.KeyPickCategory.Value
-                + " : whole category under the cursor";
+            List<string> lines = new List<string>();
+
+            AddHelpLine(
+                lines,
+                (XRays.Instance.KeyPanel, "panel"),
+                (XRays.Instance.KeyClose, "close"),
+                (XRays.Instance.KeyHud, "hud")
+            );
+            AddHelpLine(
+                lines,
+                (XRays.Instance.KeyTerrain, "terrain"),
+                (XRays.Instance.KeyWater, "water"),
+                (XRays.Instance.KeyClouds, "clouds")
+            );
+            AddHelpLine(
+                lines,
+                (XRays.Instance.KeyMist, "mist"),
+                (XRays.Instance.KeyPlayer, "player"),
+                (XRays.Instance.KeyReveal, "reveal / restore")
+            );
+            AddHelpLine(lines, (XRays.Instance.KeyPick, "hide object under cursor"));
+            AddHelpLine(lines, (XRays.Instance.KeyPickCategory, "whole category under the cursor"));
+
+            return string.Join("\n", lines);
+        }
+
+        /// <summary>
+        /// One row of the help line: "key : label" for each hotkey of that
+        /// row which has a key, joined by a dot. Nothing is added when none
+        /// of them has one, which keeps that row out of the text.
+        /// </summary>
+        private static void AddHelpLine(
+            List<string> lines,
+            params (ConfigEntry<KeyboardShortcut> key, string label)[] hotkeys
+        )
+        {
+            List<string> parts = new List<string>();
+
+            foreach ((ConfigEntry<KeyboardShortcut> key, string label) in hotkeys)
+            {
+                if (!key.Value.Equals(KeyboardShortcut.Empty))
+                {
+                    parts.Add(key.Value.ToString() + " : " + label);
+                }
+            }
+
+            if (parts.Count > 0)
+            {
+                lines.Add(string.Join("   ·   ", parts));
+            }
         }
 
         private void OnCategoryToggle(Category category, bool hidden)
