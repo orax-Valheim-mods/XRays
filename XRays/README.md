@@ -119,7 +119,7 @@ Two ways to use it:
 ## Recognized categories
 
 Build pieces · Creatures · Crops · Grass / vegetation · Ground items ·
-Locations · Pickable resources · Rocks / ore · Spawners · Trees.
+Locations · Ores · Pickable resources · Rocks · Spawners · Trees.
 
 A category is normally backed by a game component (`TreeBase` / `TreeLog` for
 Trees, `WearNTear` / `Piece` for Build pieces, ...). **Creatures** follows
@@ -148,12 +148,18 @@ well: `root` also matches `grassroot`, the object the game builds to hold
 every clutter patch, so hiding the Trees would have hidden the whole grass,
 the bushes and the isolated plants with the trees.
 
-**Rocks / ore** follows the same pattern: the ore veins carry `MineRock5` /
-`MineRock`, while a meadow boulder (`Rock_3`, `Rock_4`, `rock4_forest`, ...),
-a Mistlands rock (`rock_mistlands1`) or a cliff (`cliff_mistlands2`) only
-carries a `Destructible`, and `HugeStone1` / `rockformation1` no component the
-mod knows at all — so the category also matches `rock`, `boulder`, `stone` and
+**Rocks** follows the same pattern: the mineable rocks carry `MineRock5` /
+`MineRock`, while a meadow boulder (`Rock_3`, `Rock_4`, `rock4_forest`, ...), a
+Mistlands rock (`rock_mistlands1`) or a cliff (`cliff_mistlands2`) only carries
+a `Destructible`, and `HugeStone1` / `rockformation1` no component the mod
+knows at all — so the category also matches `rock`, `boulder`, `stone` and
 `cliff` in the object name.
+
+**Ores** takes the veins themselves. The game marks an ore and a plain stone
+with the same components, so only the name tells them apart: `copper`, `tin`,
+`iron`, `silver`, `obsidian`, `meteor`, `flametal`, `sulfur`, `gold` and
+`coal`. Rocks hands those names over to Ores, which is what keeps a copper vein
+out of the rocks while `MineRock_Stone` and the broken rock pieces stay in.
 
 **Spawners** is backed by the game's own spawner components: `CreatureSpawner`
 for the one-shot spawners, `SpawnArea` for the nests, the piles and the evil

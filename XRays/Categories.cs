@@ -43,6 +43,15 @@ namespace XRays
         public string[] NameStartsWith;
 
         /// <summary>
+        /// Case-insensitive substrings given away to another category: an ore
+        /// vein carries the same game components as a plain rock, so Rocks
+        /// hands every ore name over to Ores. Checked first, both by the name
+        /// rules and by the objects claimed through a component, so one object
+        /// never ends up in the two categories at once.
+        /// </summary>
+        public string[] NameExcludes;
+
+        /// <summary>
         /// Roots the mod finds on its own, for the objects that carry no game
         /// component at all: the clutter below the grass root of the
         /// ClutterSystem for example.
@@ -74,6 +83,12 @@ namespace XRays
                 return false;
             }
 
+            // the name belongs to another category: an ore is no rock
+            if (MatchesExclude(objectName))
+            {
+                return false;
+            }
+
             if (IsNameCategory)
             {
                 return string.Equals(objectName, Name, StringComparison.Ordinal);
@@ -84,12 +99,23 @@ namespace XRays
                 return true;
             }
 
-            if (NameContains == null)
+            return ContainsAny(objectName, NameContains);
+        }
+
+        /// <summary>Is that name given away to another category?</summary>
+        public bool MatchesExclude(string objectName)
+        {
+            return ContainsAny(objectName, NameExcludes);
+        }
+
+        private static bool ContainsAny(string objectName, string[] patterns)
+        {
+            if (string.IsNullOrEmpty(objectName) || patterns == null)
             {
                 return false;
             }
 
-            foreach (string pattern in NameContains)
+            foreach (string pattern in patterns)
             {
                 if (
                     !string.IsNullOrEmpty(pattern)
@@ -148,6 +174,30 @@ namespace XRays
         public const string CreaturesKey = "creatures";
 
         /// <summary>
+        /// The names of the ore veins. An ore vein and a plain stone are
+        /// marked with the same components (MineRock5 / MineRock), so only
+        /// the name tells them apart: they belong to Ores, never to Rocks
+        /// (see Category.NameExcludes). Both categories share this very
+        /// array, so the two lists can never drift apart. "tin" carries its
+        /// underscores: alone it would also claim "ShipSetting" and "Chitin".
+        /// </summary>
+        private static readonly string[] OreNames =
+        {
+            "copper",
+            "iron",
+            "silver",
+            "obsidian",
+            "meteor",
+            "flametal",
+            "sulfur",
+            "sulphur",
+            "gold",
+            "coal",
+            "_tin",
+            "tin_"
+        };
+
+        /// <summary>
         /// The categories in claim order: when an object is picked or
         /// hidden, the first one holding a known component (or matching the
         /// object name) decides its category. The panel lists them sorted
@@ -177,13 +227,24 @@ namespace XRays
             },
             new Category
             {
-                Key = "rocks",
-                Label = "Rocks / ore",
+                Key = "ores",
+                Label = "Ores",
                 Description =
-                    "Boulders, stones, cliffs and ore veins (MineRock5 and MineRock), matched by component and by name.",
+                    "The ore veins themselves: copper, tin, iron, silver, obsidian, meteorite, flametal, sulfur, gold and coal. The name decides, because the game marks an ore and a plain stone with the same components.",
+                // only the name tells an ore vein from a mineable stone
+                NameContains = OreNames
+            },
+            new Category
+            {
+                Key = "rocks",
+                Label = "Rocks",
+                Description =
+                    "Boulders, stones and cliffs, plus every mineable rock that is no ore (MineRock5 and MineRock), matched by component and by name.",
                 Types = new[] { typeof(MineRock5), typeof(MineRock) },
                 // a plain boulder or a cliff only carries a Destructible
-                NameContains = new[] { "rock", "boulder", "stone", "cliff" }
+                NameContains = new[] { "rock", "boulder", "stone", "cliff" },
+                // the ore veins carry those very components: they are Ores
+                NameExcludes = OreNames
             },
             new Category
             {
@@ -534,6 +595,14 @@ namespace XRays
                     }
 
                     GameObject go = comp.gameObject;
+
+                    // the name belongs to another category: an ore vein
+                    // carries MineRock5 like a stone does, but it is Ores
+                    if (category.MatchesExclude(go.name))
+                    {
+                        continue;
+                    }
+
                     if (seen.Add(go.GetInstanceID()))
                     {
                         roots.Add(go);
@@ -592,8 +661,8 @@ namespace XRays
 
                 // a known game component always decides the category of the
                 // object (that is what the picker does): never claim an object
-                // through its name when it belongs to a typed category
-                if (HasBuiltInComponent(t.gameObject))
+                // through its name when a category claims it by component
+                if (TypedOwner(t.gameObject) != null)
                 {
                     continue;
                 }
@@ -684,7 +753,7 @@ namespace XRays
         {
             for (Transform parent = transform.parent; parent != null; parent = parent.parent)
             {
-                if (category.MatchesName(parent.name) && !HasBuiltInComponent(parent.gameObject))
+                if (category.MatchesName(parent.name) && TypedOwner(parent.gameObject) == null)
                 {
                     return true;
                 }
@@ -694,15 +763,18 @@ namespace XRays
         }
 
         /// <summary>
-        /// Does the object carry one of the game components of a known
-        /// category? Such an object is never claimed through its name: the
-        /// picker would report the component's category instead.
+        /// The category claiming that object through one of its game
+        /// components, null when no category does. Such an object is never
+        /// claimed through its name: the picker would report the component's
+        /// category instead. A category giving that name away claims it
+        /// neither (Rocks leaves the ore names to Ores), which keeps the name
+        /// rules free to pick the object up.
         /// </summary>
-        private static bool HasBuiltInComponent(GameObject go)
+        private static Category TypedOwner(GameObject go)
         {
             foreach (Category category in BuiltIn)
             {
-                if (category.Types == null)
+                if (category.Types == null || category.MatchesExclude(go.name))
                 {
                     continue;
                 }
@@ -711,12 +783,12 @@ namespace XRays
                 {
                     if (go.GetComponent(type) != null)
                     {
-                        return true;
+                        return category;
                     }
                 }
             }
 
-            return false;
+            return null;
         }
     }
 }

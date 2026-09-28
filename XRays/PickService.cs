@@ -335,7 +335,10 @@ namespace XRays
 
                 foreach (Category category in Categories.BuiltIn)
                 {
-                    if (category.Types == null)
+                    // a category giving that name away claims the object by
+                    // component neither: the ore names belong to Ores, so the
+                    // walk goes on and the name rules below decide
+                    if (category.Types == null || category.MatchesExclude(current.name))
                     {
                         continue;
                     }
