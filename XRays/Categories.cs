@@ -174,12 +174,18 @@ namespace XRays
         public const string CreaturesKey = "creatures";
 
         /// <summary>
-        /// The names of the ore veins. An ore vein and a plain stone are
-        /// marked with the same components (MineRock5 / MineRock), so only
-        /// the name tells them apart: they belong to Ores, never to Rocks
-        /// (see Category.NameExcludes). Both categories share this very
-        /// array, so the two lists can never drift apart. "tin" carries its
-        /// underscores: alone it would also claim "ShipSetting" and "Chitin".
+        /// The names of the ore veins and of the giant pieces (the Mistlands
+        /// corpses). An ore vein and a plain stone are marked with the same
+        /// components (MineRock5 / MineRock), so only the name tells them
+        /// apart: they belong to Ores, never to Rocks (see
+        /// Category.NameExcludes). The giant pieces need that very name as
+        /// well: the intact one carries nothing but a Destructible, the
+        /// broken one a MineRock5 like a plain stone. Both categories share
+        /// this very array, so the two lists can never drift apart. "tin"
+        /// carries its underscores: alone it would also claim "ShipSetting"
+        /// and "Chitin"; a giant token is a whole family name, so it claims
+        /// those eight prefabs and none of the Morkhalla railings or of the
+        /// GiantBloodSack item.
         /// </summary>
         private static readonly string[] OreNames =
         {
@@ -194,7 +200,13 @@ namespace XRays
             "gold",
             "coal",
             "_tin",
-            "tin_"
+            "tin_",
+            "giant_arm",
+            "giant_brain",
+            "giant_helmet",
+            "giant_ribs",
+            "giant_skull",
+            "giant_sword"
         };
 
         /// <summary>
@@ -230,7 +242,7 @@ namespace XRays
                 Key = "ores",
                 Label = "Ores",
                 Description =
-                    "The ore veins themselves: copper, tin, iron, silver, obsidian, meteorite, flametal, sulfur, gold and coal. The name decides, because the game marks an ore and a plain stone with the same components.",
+                    "The ore veins themselves: copper, tin, iron, silver, obsidian, meteorite, flametal, sulfur, gold and coal, plus the pieces of the giant corpses (petrified bones, ancient armour, swords, soft tissue). Only the name tells them apart: the game marks an ore and a plain stone with the same components, and a broken giant piece carries MineRock5 like a plain stone.",
                 // only the name tells an ore vein from a mineable stone
                 NameContains = OreNames
             },

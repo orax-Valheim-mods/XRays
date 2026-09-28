@@ -161,11 +161,19 @@ a `Destructible`, and `HugeStone1` / `rockformation1` no component the mod
 knows at all — so the category also matches `rock`, `boulder`, `stone` and
 `cliff` in the object name.
 
-**Ores** takes the veins themselves. The game marks an ore and a plain stone
-with the same components, so only the name tells them apart: `copper`, `tin`,
-`iron`, `silver`, `obsidian`, `meteor`, `flametal`, `sulfur`, `gold` and
-`coal`. Rocks hands those names over to Ores, which is what keeps a copper vein
-out of the rocks while `MineRock_Stone` and the broken rock pieces stay in.
+**Ores** takes the veins themselves, plus the pieces of the giant corpses of
+the Mistlands (petrified bones, ancient armour, swords, soft tissue). The game
+marks an ore and a plain stone with the same components, so only the name tells
+them apart: `copper`, `tin`, `iron`, `silver`, `obsidian`, `meteor`,
+`flametal`, `sulfur`, `gold` and `coal`, then the six family names `giant_arm`,
+`giant_brain`, `giant_helmet`, `giant_ribs`, `giant_skull` and `giant_sword`,
+which are the whole `giant_...` family and nothing else — the
+`Morkhalla_giant_railing` build pieces and the `GiantBloodSack` item stay out
+of their reach. The giant pieces need that name the same way: the intact one
+only carries a `Destructible`, the broken one a `MineRock5` like a plain
+stone. Rocks hands every one of those names over to Ores, which is what keeps a
+copper vein out of the rocks while `MineRock_Stone` and the broken rock pieces
+stay in.
 
 **Spawners** is backed by the game's own spawner components: `CreatureSpawner`
 for the spawners, `SpawnArea` for the nests, the piles and the evil
