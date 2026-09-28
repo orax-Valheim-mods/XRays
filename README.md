@@ -16,7 +16,7 @@ See `XRays\Package\README.md` for the Thunderstore description.
 ```
 XRays.sln                  solution (build this, not the .csproj alone)
 Environment.props          BepInEx / deploy paths (Gale profile "dev")
-scripts\publish.ps1        copies the built DLL and YamlDotNet into BepInEx\scripts
+scripts\publish.ps1        copies the built DLL + YamlDotNet into BepInEx\scripts, the name rules file into BepInEx\plugins
 XRays\XRays.cs             main plugin: config, hotkeys, actions
 XRays\Categories.cs        category registry (trees, rocks, ...)
 XRays\VisibilityManager.cs hiding state + application on renderers
@@ -24,6 +24,7 @@ XRays\PickService.cs       picking by ray cast under the cursor
 XRays\Panel.cs             Jötunn panel
 XRays\Tooltip.cs           little box describing the row under the mouse
 XRays\NameRulesFile.cs     name rules of the categories, read from a YAML file
+XRays\orax.XRays.names.yaml the name rules themselves: shipped with the mod, copied into BepInEx\config on launch
 XRays\Package\             Thunderstore manifest.json / README.md / icon.png
 ```
 
@@ -42,6 +43,10 @@ dotnet build XRays.sln
   `publish.ps1` ships `YamlDotNet.dll` beside the plugin in both targets:
   the Script Engine resolves a script's assemblies from `BepInEx\scripts`,
   and BepInEx resolves a plugin's from its own folder.
+* `publish.ps1` also ships `XRays\orax.XRays.names.yaml` to `BepInEx\plugins`
+  in `Debug` and into the `plugins` folder of the package in `Release`: the
+  mod copies that file into `BepInEx\config` on launch, whenever it is missing
+  there or written for another version of the mod.
 * In `Release`, an archive ready for Thunderstore is created in `Package`.
 
 ## Configuration
@@ -50,6 +55,10 @@ Hotkeys, picking distance, panel height, tooltips and the rest of the options:
 `BepInEx\config\orax.XRays.cfg`
 (created on the first launch, also editable in game through Jötunn's
 ConfigManager).
+
+The name rules of the categories have a file of their own:
+`BepInEx\config\orax.XRays.names.yaml`, copied from `BepInEx\plugins` at
+launch and named by the `Files` → `Name rules file` option.
 
 ---
 
@@ -62,7 +71,8 @@ Please see the [Jötunn Docs](https://valheim-modding.github.io/Jotunn/guides/ov
 `scripts\publish.ps1` is referenced from the project file as a post-build event.
 
 * **Debug** : the compiled dll and the `.mdb` debug file are copied to
-  `<ValheimDir>\BepInEx\scripts` (path set in `Environment.props` → `MOD_DEPLOYPATH`).
+  `<ValheimDir>\BepInEx\scripts` (path set in `Environment.props` → `MOD_DEPLOYPATH`),
+  the name rules file to the `BepInEx\plugins` folder beside it.
 * **Release** : a compressed file with the binaries is created in `XRays\Package`,
   ready for upload to Thunderstore.
 

@@ -136,8 +136,8 @@ while every other animal is hidden. The category also takes the bars the
 game floats over those creatures (bar and name included): they are no
 renderers either, they get faded out — see the bullet above. The **Trees**
 category
-also matches object names — `tree`, `birch`, `beech`, `oak`, `stump`, `stub`,
-`root`, `branch` (case insensitive) — because the small decorative trees, the
+also matches object names — the substrings live in *The name rules file*
+below — because the small decorative trees, the
 stubs, the roots and the branches only carry a `Destructible`: without that
 name match they would never be hidden with the rest of the forest. An object
 holding a known component is claimed through that component, never by a name
@@ -158,22 +158,20 @@ the bushes and the isolated plants with the trees.
 `MineRock`, while a meadow boulder (`Rock_3`, `Rock_4`, `rock4_forest`, ...), a
 Mistlands rock (`rock_mistlands1`) or a cliff (`cliff_mistlands2`) only carries
 a `Destructible`, and `HugeStone1` / `rockformation1` no component the mod
-knows at all — so the category also matches `rock`, `boulder`, `stone` and
-`cliff` in the object name.
+knows at all — so the category claims them by name too, with the substrings
+of *The name rules file* below.
 
 **Ores** takes the veins themselves, plus the pieces of the giant corpses of
 the Mistlands (petrified bones, ancient armour, swords, soft tissue). The game
 marks an ore and a plain stone with the same components, so only the name tells
-them apart: `copper`, `tin`, `iron`, `silver`, `obsidian`, `meteor`,
-`flametal`, `sulfur`, `gold` and `coal`, then the six family names `giant_arm`,
-`giant_brain`, `giant_helmet`, `giant_ribs`, `giant_skull` and `giant_sword`,
-which are the whole `giant_...` family and nothing else — the
-`Morkhalla_giant_railing` build pieces and the `GiantBloodSack` item stay out
-of their reach. The giant pieces need that name the same way: the intact one
-only carries a `Destructible`, the broken one a `MineRock5` like a plain
-stone. Rocks hands every one of those names over to Ores, which is what keeps a
-copper vein out of the rocks while `MineRock_Stone` and the broken rock pieces
-stay in.
+them apart — which names the category claims, and which ones Rocks hands over
+to it, is written in *The name rules file* below. A family token there claims
+the whole family and nothing else: the `Morkhalla_giant_railing` build pieces
+and the `GiantBloodSack` item stay out of its reach. The giant pieces need
+that name the same way: the intact one only carries a `Destructible`, the
+broken one a `MineRock5` like a plain stone. Rocks hands every one of those
+names over to Ores, which is what keeps a copper vein out of the rocks while
+`MineRock_Stone` and the broken rock pieces stay in.
 
 The name rules can also be regular expressions: `NameMatches` claims the names
 a pattern describes, `NameExcludesMatches` gives them away to another
@@ -186,9 +184,9 @@ that does not compile is written to the BepInEx log and matches nothing.
 **Spawners** is backed by the game's own spawner components: `CreatureSpawner`
 for the spawners, `SpawnArea` for the nests, the piles and the evil
 hearts, `TriggerSpawner` for the holes that open when you come close. A modded
-spawner carrying none of them is caught by its name instead: every one of
-those prefabs is named `Spawner...`, taken from the start of the name, so the
-model pieces and the effects whose name merely contains "spawner" are never
+spawner carrying none of them is caught by its name instead: the file gives
+the category a prefix, taken from the start of the name, so the model pieces
+and the effects whose name merely contains that word are never
 claimed. `SpawnSystem` is deliberately left out — it sits on the zone
 controller, not on a spawner.
 
@@ -198,8 +196,8 @@ Any object that does not belong to those groups automatically creates a
 **Grass / vegetation** works the same way: the game draws the instanced grass
 with `InstanceRenderer` (the `Renderer`s of the patches are inactive), so the
 category is backed by that component; the bushes, ferns, mushrooms and
-isolated plants are caught by name — `bush`, `shrub`, `grass`, `fern`, `reed`,
-`moss`, `mushroom`, `flower`; and everything the clutter system spawns is
+isolated plants are caught by name — the substrings live in *The name rules
+file* below; and everything the clutter system spawns is
 grouped under its own `grassroot` object. That root matters: the
 `ClutterSystem` component itself lives on the root of the scene, hiding it
 would take the clouds, the sea and the weather down with the grass.
@@ -223,7 +221,8 @@ Vortex, r2modman or Gale.
 ### Manually
 1. Install [BepInExPack for Valheim](https://thunderstore.io/c/valheim/p/denikson/BepInExPack_Valheim/)
    and [Jötunn](https://thunderstore.io/c/valheim/p/ValheimModding/Jotunn/).
-2. Copy `XRays.dll` and `YamlDotNet.dll` into `Steam\steamapps\common\Valheim\BepInEx\plugins\`.
+2. Copy `XRays.dll`, `YamlDotNet.dll` and `orax.XRays.names.yaml` into
+   `Steam\steamapps\common\Valheim\BepInEx\plugins\`.
 
 ## Configuration
 
@@ -231,8 +230,10 @@ All options live in `BepInEx\config\orax.XRays.cfg` (created on the first
 launch, also editable in game through the Configuration Manager — a separate
 mod, its window opens with `F1`):
 
-The name rules of the categories have a file of their own,
-`BepInEx\config\orax.XRays.names.yaml`, described at the end of this section:
+The name rules of the categories have a file of their own: it ships in
+`BepInEx\plugins`, is copied into `BepInEx\config` at launch, and which file it
+is, is the `Files` option of the table below — described at the end of this
+section:
 
 The hotkeys are **key combinations**: in that window, click a hotkey and it
 records the next combination you press (a key plus modifier keys), there is
@@ -251,6 +252,7 @@ dropped from the file.
 
 | Section | Option | Default | Description |
 | --- | --- | --- | --- |
+| `Files` | `Name rules file` | `orax.XRays.names.yaml` | Name of the YAML file holding the name rules of the categories: the mod looks for it in `BepInEx\plugins`, beside its own assembly and in `BepInEx\scripts`, and copies it into `BepInEx\config` when it is missing there or written for another version of the mod (the copy of `BepInEx\config` is the file read) |
 | `General hotkeys` | `Close control panel` | `Escape` | Closes the XRays panel |
 | `General hotkeys` | `Open/close control panel` | `F8` | Opens / closes the XRays panel |
 | `General hotkeys` | `Pick category` | `F9 + LeftControl` | Hides / shows the whole category of the object under the cursor: `Pick` pressed with that combination |
@@ -273,21 +275,33 @@ dropped from the file.
 
 What a category claims by name — the substrings, the prefixes and the
 regular expressions matched against the name of a game object, and the names
-it gives away to another category — lives in a file of its own,
-`BepInEx\config\orax.XRays.names.yaml`, written on the first launch and read
-again every time it changes while the game runs. A file holding a couple of
-categories could look like this:
+it gives away to another category — lives in a file of its own **and in that
+file only**: the code holds no name rule at all. The mod ships it as
+`BepInEx\plugins\orax.XRays.names.yaml`, looked for there, then beside its own
+assembly, then in `BepInEx\scripts`, and copies it into `BepInEx\config` at
+launch; the copy of `BepInEx\config` is the file read, and read again every
+time it changes while the game runs. Which file it is, is the `Files` →
+`Name rules file` option of the table above.
+
+The mod writes its own version on the `version` line of the file, so the copy
+is **replaced by the shipped one** when it is missing or written for another
+version of the mod. Keep that line as it is when the file is edited — an
+edited file has to be copied aside before the mod is updated, or it goes with
+it — and deleting the copy simply brings the shipped file back. A file
+holding a couple of categories could look like this:
 
 ```yaml
+version: 0.1.0
 ores:
   nameContains:
-    - "_copper"
-    - "silver"
+    - '_copper'
+    - 'silver'
   nameMatches:
-    - "^giant_(arm|brain|helmet|ribs|skull|sword)"
+    - '^giant_(ribs|skull|sword)'
 rocks:
   nameExcludes:
-    - "_copper"
+    - '_copper'
+    - 'silver'
 ```
 
 The five lists of a category, every one of them matched against the object
@@ -302,15 +316,22 @@ name:
 | `nameExcludesMatches` | regular expressions given away the same way |
 
 The file is the **only source**: a list it does not carry is empty, and a
-category it does not carry has no name rule at all. The rules written in the
-code only fill the file the first time, so deleting it brings them back.
-Categories are named by their key — `trees`, `ores`, `rocks`, `pickable`,
-`build`, `creatures`, `items`, `plants`, `spawners`, `clutter`, `locations`
-— and a key naming none of them is written to the log, it is usually a typo.
+category it does not carry has no name rule at all. Categories are named by
+their key — `trees`, `ores`, `rocks`, `pickable`, `build`, `creatures`,
+`items`, `plants`, `spawners`, `clutter`, `locations` — and a key naming none
+of them is written to the log, it is usually a typo.
 
 A list belongs to one category only: telling `ores` what it claims does not
 keep `rocks` from claiming the very same names, so both sides have to be
 written — which is what `nameExcludes` is for.
+
+Write the values between **single quotes**: nothing is escaped in them, so a
+regular expression keeps its backslash, `'^Rock_\d+$'` written once. Between
+double quotes a backslash has to be written twice (`"^Rock_\\d+$"`), and
+`"\d"` is a parse error; a value written without quotes at all is read
+literally too, but a ` #` inside it starts a comment and cuts it short. The
+name matched is the raw name of the game object, `Rock_3(Clone)` included
+when the game clones one.
 
 A change is applied **while the game runs** (the date of the file is looked
 at twice a second): the categories keep a name scan for a couple of seconds,
