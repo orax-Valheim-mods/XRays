@@ -28,6 +28,30 @@ namespace XRays
             }
         }
 
+        /// <summary>
+        /// The renderers and InstanceRenderers sitting below one hidden root,
+        /// kept from the pass that collected them: the children of a root are
+        /// only walked again once every RendererBuckets passes, which is what
+        /// a full walk of the scene costs.
+        /// </summary>
+        private class CachedRoot
+        {
+            public GameObject Root;
+            public Renderer[] Renderers;
+            public InstanceRenderer[] Instances;
+
+            /// <summary>The pass at which the children are walked again.</summary>
+            public int NextPass;
+
+            public void Collect(GameObject go, int nextPass)
+            {
+                Root = go;
+                Renderers = go.GetComponentsInChildren<Renderer>(true);
+                Instances = go.GetComponentsInChildren<InstanceRenderer>(true);
+                NextPass = nextPass;
+            }
+        }
+
         /// <summary>Default of the config option "Refresh" → "Update interval" (seconds).</summary>
         public const float DefaultUpdateInterval = 2f;
 
@@ -36,6 +60,13 @@ namespace XRays
         /// "Refresh" → "Update interval".
         /// </summary>
         public float UpdateInterval = DefaultUpdateInterval;
+
+        /// <summary>
+        /// How many passes the children of a hidden root are kept before they
+        /// are walked again: one pass out of that many pays the walk, the
+        /// other passes only read what was kept (see CachedRootOf).
+        /// </summary>
+        private const int RendererBuckets = 10;
 
         private readonly Dictionary<int, Renderer> hiddenRenderers =
             new Dictionary<int, Renderer>();
@@ -50,6 +81,16 @@ namespace XRays
         private readonly Dictionary<int, InstanceRenderer> hiddenInstances =
             new Dictionary<int, InstanceRenderer>();
         private readonly Dictionary<int, bool> instanceStates = new Dictionary<int, bool>();
+
+        /// <summary>The children of the hidden roots, keyed by root (see CachedRootOf).</summary>
+        private readonly Dictionary<int, CachedRoot> rendererCache =
+            new Dictionary<int, CachedRoot>();
+
+        /// <summary>Keys taken out of that cache, collected before removing them (reused, never reallocated).</summary>
+        private readonly List<int> deadRoots = new List<int>();
+
+        private int passCounter;
+        private int staggerCounter;
 
         private readonly Dictionary<int, GameObject> individualObjects =
             new Dictionary<int, GameObject>();
@@ -558,6 +599,8 @@ namespace XRays
         {
             ReconcileTiming.Begin();
 
+            passCounter++;
+
             HashSet<int> waterIds = CollectWaterSurfaceIds();
             Dictionary<int, Renderer> wanted = new Dictionary<int, Renderer>();
             Dictionary<int, InstanceRenderer> wantedInstances =
@@ -676,7 +719,7 @@ namespace XRays
                 Player player = Player.m_localPlayer;
                 if (player != null)
                 {
-                    AddRenderers(player.gameObject, wanted, wantedInstances, waterIds);
+                    AddRenderers(player.gameObject, wanted, wantedInstances, waterIds, fresh: true);
                 }
 
                 ReconcileTiming.Mark("player");
@@ -716,6 +759,8 @@ namespace XRays
 
             hiddenRoots.Clear();
             hiddenRoots.UnionWith(roots);
+
+            PurgeRendererCache();
 
             ReconcileTiming.Mark("roots");
 
@@ -1092,16 +1137,69 @@ namespace XRays
             }
         }
 
+        /// <summary>Forgets the roots the game destroyed: they never come back.</summary>
+        private void PurgeRendererCache()
+        {
+            foreach (KeyValuePair<int, CachedRoot> entry in rendererCache)
+            {
+                if (entry.Value == null || entry.Value.Root == null)
+                {
+                    deadRoots.Add(entry.Key);
+                }
+            }
+
+            foreach (int id in deadRoots)
+            {
+                rendererCache.Remove(id);
+            }
+
+            deadRoots.Clear();
+        }
+
+        /// <summary>
+        /// The children of that root as they were collected recently: walked
+        /// again once every RendererBuckets passes. The first collection
+        /// pushes the roots one by one over the next passes, so the roots met
+        /// in the same pass never all come due together again.
+        /// </summary>
+        private CachedRoot CachedRootOf(GameObject go)
+        {
+            int id = go.GetInstanceID();
+            CachedRoot cached;
+
+            if (rendererCache.TryGetValue(id, out cached) && cached != null && cached.Root == go)
+            {
+                if (cached.NextPass > passCounter)
+                {
+                    return cached;
+                }
+
+                cached.Collect(go, passCounter + RendererBuckets);
+                return cached;
+            }
+
+            cached = new CachedRoot();
+            cached.Collect(go, passCounter + 1 + staggerCounter++ % RendererBuckets);
+            rendererCache[id] = cached;
+            return cached;
+        }
+
         /// <summary>
         /// Registers everything that must be hidden below that object: the
         /// renderers (never the water surfaces, they belong to the water
         /// toggle) and the InstanceRenderers drawing the instanced grass.
+        ///
+        /// The children are the ones kept by CachedRootOf: only one pass out
+        /// of RendererBuckets walks them again, the others read what was
+        /// kept. The character of the player is asked fresh every time, the
+        /// game rebuilds its visual under it when the equipment changes.
         /// </summary>
-        private static void AddRenderers(
+        private void AddRenderers(
             GameObject go,
             Dictionary<int, Renderer> wanted,
             Dictionary<int, InstanceRenderer> wantedInstances,
-            HashSet<int> excluded
+            HashSet<int> excluded,
+            bool fresh = false
         )
         {
             if (go == null)
@@ -1109,7 +1207,21 @@ namespace XRays
                 return;
             }
 
-            Renderer[] renderers = go.GetComponentsInChildren<Renderer>(true);
+            Renderer[] renderers;
+            InstanceRenderer[] instances;
+
+            if (fresh)
+            {
+                renderers = go.GetComponentsInChildren<Renderer>(true);
+                instances = go.GetComponentsInChildren<InstanceRenderer>(true);
+            }
+            else
+            {
+                CachedRoot cached = CachedRootOf(go);
+                renderers = cached.Renderers;
+                instances = cached.Instances;
+            }
+
             foreach (Renderer renderer in renderers)
             {
                 if (renderer == null)
@@ -1127,7 +1239,6 @@ namespace XRays
                 wanted[id] = renderer;
             }
 
-            InstanceRenderer[] instances = go.GetComponentsInChildren<InstanceRenderer>(true);
             foreach (InstanceRenderer instance in instances)
             {
                 if (instance != null)

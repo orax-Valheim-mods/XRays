@@ -251,7 +251,7 @@ namespace XRays
                 "Update interval",
                 VisibilityManager.DefaultUpdateInterval,
                 new ConfigDescription(
-                    "Seconds between two passes recomputing everything that must stay hidden (the periodic sweep of the scene). A longer wait costs less CPU, and objects appearing later (a spawn, a new construction) are picked up later.",
+                    "Seconds between two passes recomputing everything that must stay hidden (the periodic sweep of the scene). A longer wait costs less CPU, and objects appearing later (a spawn, a new construction) are picked up later. The renderers below a hidden root are collected again once every ten passes.",
                     new AcceptableValueRange<float>(0.1f, 60f)
                 )
             );

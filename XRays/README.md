@@ -267,7 +267,7 @@ dropped from the file.
 | `Selection` | `Max distance` | `100` | Maximum picking distance (meters) |
 | `Display` | `Panel height` | `700` | Vertical size of the panel (360 to 1200 pixels); the rows scroll when they do not fit in it |
 | `Display` | `Show tooltips` | `true` | Shows the little box describing a row while the pointer rests on it; off, no box ever appears (same thing as the **Show tooltips** row of the panel) |
-| `Refresh` | `Update interval` | `2` | Seconds between two passes recomputing everything that must stay hidden (the periodic sweep of the scene); a longer wait costs less CPU, and objects appearing later (a spawn, a new construction) are picked up later |
+| `Refresh` | `Update interval` | `2` | Seconds between two passes recomputing everything that must stay hidden (the periodic sweep of the scene); a longer wait costs less CPU, and objects appearing later (a spawn, a new construction) are picked up later. The renderers below a hidden root are collected again once every ten passes, so a renderer the game adds below a root is hidden at the next collection |
 | `Refresh` | `Name scan interval` | `4` | Seconds the result of an object-name scan is kept before the scene is swept again for the name rules; a longer wait costs less CPU, and the objects a name rule catches later are picked up at the next scan |
 | `Logging` | `Log cursor info` | `false` | Logs the panel's "Under the cursor" text, only while the panel is on screen |
 | `Logging` | `Log reconcile timing` | `false` | Times the phases of the periodic hiding pass: one line per second while options are hidden, with the average, the smallest and the biggest value (milliseconds) |
