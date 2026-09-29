@@ -44,6 +44,12 @@ namespace XRays
 
         internal ConfigEntry<bool> ShowTooltips;
 
+        /// <summary>Seconds between two passes recomputing what must stay hidden.</summary>
+        internal ConfigEntry<float> UpdateInterval;
+
+        /// <summary>Seconds an object-name scan is kept before a new one.</summary>
+        internal ConfigEntry<float> NameScanInterval;
+
         internal ConfigEntry<bool> LogCursorInfo;
 
         /// <summary>Whether the phases of the reconcile pass are timed to the log.</summary>
@@ -240,6 +246,24 @@ namespace XRays
                 true,
                 "Show the little box describing a row of the panel while the pointer rests on it: it appears after a short delay and follows the pointer. Turning this off takes every box away."
             );
+            UpdateInterval = Config.Bind(
+                "Refresh",
+                "Update interval",
+                VisibilityManager.DefaultUpdateInterval,
+                new ConfigDescription(
+                    "Seconds between two passes recomputing everything that must stay hidden (the periodic sweep of the scene). A longer wait costs less CPU, and objects appearing later (a spawn, a new construction) are picked up later.",
+                    new AcceptableValueRange<float>(0.1f, 60f)
+                )
+            );
+            NameScanInterval = Config.Bind(
+                "Refresh",
+                "Name scan interval",
+                Categories.DefaultNameScanInterval,
+                new ConfigDescription(
+                    "Seconds the result of an object-name scan is kept before the scene is swept again for the name rules. A longer wait costs less CPU, and the objects a name rule catches later are picked up at the next scan.",
+                    new AcceptableValueRange<float>(0.1f, 60f)
+                )
+            );
             LogCursorInfo = Config.Bind(
                 "Logging",
                 "Log cursor info",
@@ -391,6 +415,7 @@ namespace XRays
 
             if (Visibility != null)
             {
+                Visibility.UpdateInterval = UpdateInterval.Value;
                 Visibility.Tick(deltaTime);
                 SyncRememberedSetup(deltaTime);
             }

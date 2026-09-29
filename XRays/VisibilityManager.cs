@@ -28,7 +28,14 @@ namespace XRays
             }
         }
 
-        private const float RefreshInterval = 0.75f;
+        /// <summary>Default of the config option "Refresh" → "Update interval" (seconds).</summary>
+        public const float DefaultUpdateInterval = 2f;
+
+        /// <summary>
+        /// Seconds between two passes, set every frame from the config option
+        /// "Refresh" → "Update interval".
+        /// </summary>
+        public float UpdateInterval = DefaultUpdateInterval;
 
         private readonly Dictionary<int, Renderer> hiddenRenderers =
             new Dictionary<int, Renderer>();
@@ -534,7 +541,7 @@ namespace XRays
             }
 
             refreshTimer += deltaTime;
-            if (refreshTimer < RefreshInterval)
+            if (refreshTimer < UpdateInterval)
             {
                 return;
             }

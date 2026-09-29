@@ -406,11 +406,22 @@ namespace XRays
         private static readonly Dictionary<string, Category> Registry =
             new Dictionary<string, Category>();
 
+        /// <summary>Default of the config option "Refresh" → "Name scan interval" (seconds).</summary>
+        public const float DefaultNameScanInterval = 4f;
+
         /// <summary>
-        /// A name match needs a scan of every loaded object, which is far too
-        /// expensive to run on each refresh: the result is kept for a moment.
+        /// How long a name scan is kept: a name match needs a scan of every
+        /// loaded object, which is far too expensive to run on each refresh,
+        /// so the result is kept for the wait of the config option.
         /// </summary>
-        private const float NameScanDuration = 2f;
+        public static float NameScanDuration()
+        {
+            XRays plugin = XRays.Instance;
+
+            return plugin != null && plugin.NameScanInterval != null
+                ? plugin.NameScanInterval.Value
+                : DefaultNameScanInterval;
+        }
 
         private class NameScan
         {
@@ -655,7 +666,7 @@ namespace XRays
             NameScan scan;
             if (
                 NameScans.TryGetValue(category.Key, out scan)
-                && Time.realtimeSinceStartup - scan.Time < NameScanDuration
+                && Time.realtimeSinceStartup - scan.Time < NameScanDuration()
             )
             {
                 return scan.Roots;
