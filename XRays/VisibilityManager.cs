@@ -838,15 +838,22 @@ namespace XRays
         /// </summary>
         private void ApplyEnemyHud()
         {
+            bool hide = HudHidden || IsCategoryHidden(Categories.CreaturesKey);
+            CanvasGroup group = enemyHudGroup;
+
+            // without a group to bring back and with no option hiding the
+            // bars, there is nothing to do: EnemyHud is not even read
+            if (!hide && group == null)
+            {
+                return;
+            }
+
             EnemyHud enemyHud = EnemyHud.instance;
             GameObject root = enemyHud != null ? enemyHud.m_hudRoot : null;
             if (root == null)
             {
                 return;
             }
-
-            bool hide = HudHidden || IsCategoryHidden(Categories.CreaturesKey);
-            CanvasGroup group = enemyHudGroup;
 
             if (group == null)
             {

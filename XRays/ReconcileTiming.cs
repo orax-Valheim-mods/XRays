@@ -154,7 +154,14 @@ namespace XRays
         {
             if (!Enabled)
             {
-                Reset();
+                // without a window in progress there is nothing to drop: the
+                // counters are only cleared when the option went off in the
+                // middle of one
+                if (windowTimer > 0f || passes > 0)
+                {
+                    Reset();
+                }
+
                 return;
             }
 
