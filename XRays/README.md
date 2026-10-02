@@ -253,6 +253,7 @@ dropped from the file.
 | Section | Option | Default | Description |
 | --- | --- | --- | --- |
 | `Files` | `Name rules file` | `orax.XRays.names.yaml` | Name of the YAML file holding the name rules of the categories: the mod looks for it in `BepInEx\plugins`, beside its own assembly and in `BepInEx\scripts`, and copies it into `BepInEx\config` when it is missing there or written for another version of the mod (the copy of `BepInEx\config` is the file read) |
+| `General` | `Enable` | `true` | Master switch: unchecked, everything hidden is shown again, the panel closes and the mod stops completely (hotkeys and periodic work included); checked back, the panel options come back as they were — the objects picked one by one and the categories taken by name are forgotten |
 | `General hotkeys` | `Close control panel` | `Escape` | Closes the XRays panel |
 | `General hotkeys` | `Open/close control panel` | `F8` | Opens / closes the XRays panel |
 | `General hotkeys` | `Pick category` | `F9 + LeftControl` | Hides / shows the whole category of the object under the cursor: `Pick` pressed with that combination |

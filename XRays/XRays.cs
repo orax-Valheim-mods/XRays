@@ -67,6 +67,9 @@ namespace XRays
         /// <summary>Name of the YAML file holding the name rules of the categories.</summary>
         internal ConfigEntry<string> NameRulesFileName;
 
+        /// <summary>Master switch: unchecked, nothing of the mod runs.</summary>
+        internal ConfigEntry<bool> Enable;
+
         /// <summary>How often the "Under the cursor" info is sampled for logging.</summary>
         private const float CursorLogInterval = 0.4f;
 
@@ -107,6 +110,12 @@ namespace XRays
         private float cursorLogTimer;
         private float setupSyncTimer;
         private string lastCursorLog;
+
+        /// <summary>Whether the mod runs: read from the option each frame, a change goes through SetModEnabled.</summary>
+        private bool modEnabled;
+
+        /// <summary>The panel options when the mod was switched off, to bring them back on.</summary>
+        private bool[] disabledSetup;
 
         private void Awake()
         {
@@ -295,6 +304,13 @@ namespace XRays
                 "Name of the YAML file holding the name rules of the categories. The mod looks for it in BepInEx\\plugins, beside its own assembly and in BepInEx\\scripts, and copies it into BepInEx\\config when it is missing there or written for another version of the mod: the copy of BepInEx\\config is the file read, and read again every time it changes while the game runs."
             );
 
+            Enable = Config.Bind(
+                "General",
+                "Enable",
+                true,
+                "Unchecked, the mod stops completely: everything hidden is shown again, the panel closes, and the hotkeys and the periodic work do nothing until it is checked again. Checked back, the panel options come back as they were (the objects picked one by one and the categories taken by name are forgotten); started switched off, the mod comes back with the remembered setup instead, when \"Remember setup\" is on."
+            );
+
             Config.SaveOnConfigSet = saveOnConfigSet;
 
             Config.Save();
@@ -305,7 +321,11 @@ namespace XRays
             Visibility = new VisibilityManager();
             Panel = new Panel(this, Visibility);
 
-            RestoreRememberedSetup();
+            modEnabled = Enable.Value;
+            if (modEnabled)
+            {
+                RestoreRememberedSetup();
+            }
 
             GUIManager.OnCustomGUIAvailable += OnCustomGuiAvailable;
 
@@ -410,6 +430,17 @@ namespace XRays
         private void Update()
         {
             float deltaTime = Time.deltaTime;
+
+            if (Enable.Value != modEnabled)
+            {
+                SetModEnabled(Enable.Value);
+            }
+
+            if (!modEnabled)
+            {
+                // switched off: not one frame of the mod runs
+                return;
+            }
 
             ReconcileTiming.Enabled = LogReconcileTiming.Value;
 
@@ -518,6 +549,50 @@ namespace XRays
             {
                 TickCursorLog(deltaTime);
             }
+        }
+
+        /// <summary>
+        /// Switches the mod on or off with the "General" → "Enable" option.
+        /// Off: the setup of the panel is put aside, everything is shown
+        /// again, the panel closes and the timing window of the passes is
+        /// dropped. On: the setup put aside comes back, or the remembered
+        /// one when the mod was started switched off.
+        /// </summary>
+        private void SetModEnabled(bool enabled)
+        {
+            if (enabled)
+            {
+                if (disabledSetup != null)
+                {
+                    Visibility.ApplyOptions(disabledSetup);
+                    disabledSetup = null;
+                }
+                else
+                {
+                    RestoreRememberedSetup();
+                }
+
+                Notify("XRays enabled");
+            }
+            else
+            {
+                disabledSetup = Visibility.CaptureOptions();
+
+                if (Panel != null && Panel.IsOpen)
+                {
+                    Panel.Close();
+                }
+
+                Visibility.RestoreAll();
+
+                // the timing window of the passes goes with them
+                ReconcileTiming.Enabled = false;
+                ReconcileTiming.Tick(0f);
+
+                Notify("XRays disabled");
+            }
+
+            modEnabled = enabled;
         }
 
         // ------------------------------------------------------------------
