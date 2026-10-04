@@ -55,13 +55,7 @@ namespace XRays
         /// <summary>Whether the phases of the reconcile pass are timed to the log.</summary>
         internal ConfigEntry<bool> LogReconcileTiming;
 
-        /// <summary>
-        /// Panel toggle: keep the checked options for the next launch (the
-        /// setup itself lives in the entry below).
-        /// </summary>
-        internal ConfigEntry<bool> RememberSetup;
-
-        /// <summary>The options kept for the next launch, as a list of names.</summary>
+        /// <summary>The options kept for a later restore, as a list of names.</summary>
         internal ConfigEntry<string> SavedSetup;
 
         /// <summary>Name of the YAML file holding the name rules of the categories.</summary>
@@ -281,17 +275,11 @@ namespace XRays
                 false,
                 "Write the time spent in each phase of the periodic hiding pass to the BepInEx log: one line per second while options are hidden, with the average, the smallest and the biggest value of the passes covered. Nothing is written while this is off."
             );
-            RememberSetup = Config.Bind(
-                "Setup",
-                "Remember setup",
-                false,
-                "Whether the options stored under \"Saved setup\" are checked again when the game starts. The \"Remember this setup\" button of the panel turns this on and writes the setup of the moment; this entry is only turned off by hand, to stop restoring it."
-            );
             SavedSetup = Config.Bind(
                 "Setup",
                 "Saved setup",
                 "",
-                "The options kept for the next launch, written as their names (terrain, water, clouds, mist, player, hud and the category keys, comma separated). Filled in by the \"Remember this setup\" button of the panel: edited by hand only to force a setup."
+                "The options written with the \"Save setup\" button of the panel, written as their names (terrain, water, clouds, mist, player, hud and the category keys, comma separated), brought back with the \"Restore setup\" button and never applied at startup: edited by hand only to force a setup."
             );
             NameRulesFileName = Config.Bind(
                 "Files",
@@ -304,7 +292,7 @@ namespace XRays
                 "General",
                 "Enable",
                 true,
-                "Unchecked, the mod stops completely: everything hidden is shown again, the panel closes, and the hotkeys and the periodic work do nothing until it is checked again. Checked back, the panel options come back as they were (the objects picked one by one and the categories taken by name are forgotten); started switched off, the mod comes back with the remembered setup instead, when \"Remember setup\" is on."
+                "Unchecked, the mod stops completely: everything hidden is shown again, the panel closes, and the hotkeys and the periodic work do nothing until it is checked again. Checked back, the panel options come back as they were (the objects picked one by one and the categories taken by name are forgotten); started switched off, the mod simply starts with everything shown."
             );
 
             Config.SaveOnConfigSet = saveOnConfigSet;
@@ -318,10 +306,6 @@ namespace XRays
             Panel = new Panel(this, Visibility);
 
             modEnabled = Enable.Value;
-            if (modEnabled)
-            {
-                RestoreRememberedSetup();
-            }
 
             GUIManager.OnCustomGUIAvailable += OnCustomGuiAvailable;
 
@@ -550,8 +534,8 @@ namespace XRays
         /// Switches the mod on or off with the "General" → "Enable" option.
         /// Off: the setup of the panel is put aside, everything is shown
         /// again, the panel closes and the timing window of the passes is
-        /// dropped. On: the setup put aside comes back, or the remembered
-        /// one when the mod was started switched off.
+        /// dropped. On: the setup put aside comes back; started switched
+        /// off, the mod simply starts with everything shown.
         /// </summary>
         private void SetModEnabled(bool enabled)
         {
@@ -561,10 +545,6 @@ namespace XRays
                 {
                     Visibility.ApplyOptions(disabledSetup);
                     disabledSetup = null;
-                }
-                else
-                {
-                    RestoreRememberedSetup();
                 }
 
                 Notify("XRays enabled");
@@ -715,38 +695,38 @@ namespace XRays
         }
 
         // ------------------------------------------------------------------
-        // Remembered setup
+        // Saved setup
         // ------------------------------------------------------------------
 
         /// <summary>
-        /// Called by the panel button: turns the restore on and writes the
-        /// options checked right now to the config, so the next launch
-        /// starts from them. Nothing is sampled while the game runs: the
-        /// setup only changes on a press, and a message confirms it.
+        /// Called by the "Save setup" button: writes the options checked
+        /// right now to the config, with a message to confirm it. Nothing
+        /// samples the panel while the game runs: the saved setup only
+        /// changes on a press.
         /// </summary>
-        internal void RememberCurrentSetup()
+        internal void SaveSetup()
         {
-            RememberSetup.Value = true;
             StoreRememberedSetup();
-            Notify("Setup remembered for the next launch");
+            Logger.LogInfo("Setup saved: " + SavedSetup.Value);
+            Notify("Setup saved");
         }
 
         /// <summary>
-        /// Puts the stored options back at startup, when a setup has been
-        /// remembered (the "Remember setup" flag, written by the panel
-        /// button). The state is rebuilt name by name, so the options and
-        /// the categories that did not exist when it was stored simply
-        /// start unchecked, and the ones that were removed are dropped.
+        /// Called by the "Restore setup" button: ticks back the options
+        /// written with "Save setup". It never runs by itself: the saved
+        /// setup is not applied at startup, only on this press.
         /// </summary>
-        private void RestoreRememberedSetup()
+        internal void RestoreSetup()
         {
-            if (!RememberSetup.Value || string.IsNullOrEmpty(SavedSetup.Value))
+            if (string.IsNullOrEmpty(SavedSetup.Value))
             {
+                Notify("No setup saved yet");
                 return;
             }
 
             Visibility.ApplyOptions(DeserializeSetup(SavedSetup.Value));
-            Logger.LogInfo("Remembered setup restored: " + SavedSetup.Value);
+            Logger.LogInfo("Setup restored: " + SavedSetup.Value);
+            Notify("Setup restored");
         }
 
         private void StoreRememberedSetup()

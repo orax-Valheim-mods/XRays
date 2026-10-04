@@ -36,9 +36,13 @@ namespace XRays
         private const float RefreshInterval = 0.4f;
         private const float CountInterval = 1.5f;
 
-        /// <summary>What the "Remember this setup" button describes itself with.</summary>
-        private const string RememberTip =
-            "Writes the options ticked right now: they are ticked again the next time the game starts, and a message confirms the save. Pressing it again overwrites what was kept.";
+        /// <summary>What the "Save setup" button describes itself with.</summary>
+        private const string SaveTip =
+            "Writes the options ticked right now to the config. The saved setup is never applied by itself, not even when the game starts: it only comes back with the \"Restore setup\" button.";
+
+        /// <summary>What the "Restore setup" button describes itself with.</summary>
+        private const string RestoreTip =
+            "Ticks back the options written with \"Save setup\", right away. Nothing of it runs while the game loads, so this button is the only way the saved setup is applied.";
 
         /// <summary>What the "Show tooltips" row describes itself with.</summary>
         private const string TooltipsTip =
@@ -520,18 +524,28 @@ namespace XRays
                 "The object roots currently invisible (ticked categories, objects picked one by one, Hide all), and what is hidden without a row of its own in this list."
             );
 
-            // the setup kept for the next launch: a button instead of a
-            // toggle, so the row is an action and the list stays one
-            // single list of options
-            Button rememberButton = MakeButton(
-                "Remember this setup for the next launch",
-                RightMargin,
+            // the saved setup: a save button on the left, a restore button
+            // on the right, nothing of it applied by itself (not even at
+            // startup) — the list stays one single list of options
+            Button saveButton = MakeButton(
+                "Save setup",
+                RightMargin - 220f,
                 rows[remember],
-                LayerLineWidth,
+                210f,
                 24f
             );
-            rememberButton.onClick.AddListener(OnRememberSetup);
-            tip.Attach(rememberButton.gameObject, RememberTip);
+            saveButton.onClick.AddListener(OnSaveSetup);
+            tip.Attach(saveButton.gameObject, SaveTip);
+
+            Button restoreButton = MakeButton(
+                "Restore setup",
+                RightMargin,
+                rows[remember],
+                210f,
+                24f
+            );
+            restoreButton.onClick.AddListener(OnRestoreSetup);
+            tip.Attach(restoreButton.gameObject, RestoreTip);
 
             // the "Show tooltips" option, the same shape as the row above
             tooltipsToggle = MakeToggle(
@@ -1003,12 +1017,22 @@ namespace XRays
         }
 
         /// <summary>
-        /// Keeps the checked options for the next launch: the button only
+        /// Keeps the checked options for a later restore: the button only
         /// calls the plugin, which stores them and confirms it.
         /// </summary>
-        private void OnRememberSetup()
+        private void OnSaveSetup()
         {
-            plugin.RememberCurrentSetup();
+            plugin.SaveSetup();
+        }
+
+        /// <summary>
+        /// Brings the stored options back at once, then shows them in the
+        /// rows of the open panel.
+        /// </summary>
+        private void OnRestoreSetup()
+        {
+            plugin.RestoreSetup();
+            Refresh();
         }
 
         private void OnTooltipsToggle(bool show)

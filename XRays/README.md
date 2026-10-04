@@ -89,17 +89,15 @@ Two ways to use it:
   ticked by hand while the reveal is on is kept when the setup comes back. **Hide
   all** and **Show all** both forget that setup: they are global commands, so
   after either of them the reveal starts again from what the list holds.
-* **Remember this setup for the next launch** (the button under the
-  counters, `Setup` → `Remember setup` in the config) keeps the very list of
-  the panel — the world options and the ticked categories — and checks those
-  options again the next time the game starts. Pressing it writes the setup
-  of the moment (a message confirms it) and turns the restore on; the next
-  press overwrites what was kept, and nothing is written in between, so the
-  state of the panel, of the hotkeys and of **Hide all** / **Show all** at
-  the moment of the press is what comes back. Switching the `Remember setup`
-  entry off by hand stops the restore. Like the reveal toggle it only deals
-  with the options of the list: the objects hidden one by one and the
-  categories created on the fly are left out of it.
+* **Save setup** and **Restore setup** (the two buttons under the counters,
+  `Setup` → `Saved setup` in the config) deal with the very list of the
+  panel — the world options and the ticked categories. **Save setup** writes
+  the options ticked at that moment (a message confirms it), and **Restore
+  setup** ticks them back right away. Nothing is applied by itself: the
+  saved setup is never loaded when the game starts, the only way it comes
+  back is a press on **Restore setup**. Like the reveal toggle the two
+  buttons only deal with the options of the list: the objects hidden one by
+  one and the categories created on the fly are left out of them.
 * **Player** takes your own character out of the picture — body, armor
   and held item — so it never blocks the view. It only disables renderers,
   the colliders and the camera stay untouched; the **Creatures** category
@@ -274,8 +272,7 @@ dropped from the file.
 | `Refresh` | `Name scan interval` | `4` | Seconds the result of an object-name scan is kept before the scene is swept again for the name rules; a longer wait costs less CPU, and the objects a name rule catches later are picked up at the next scan |
 | `Logging` | `Log cursor info` | `false` | Logs the panel's "Under the cursor" text, only while the panel is on screen |
 | `Logging` | `Log reconcile timing` | `false` | Times the phases of the periodic hiding pass: one line per second while options are hidden, with the average, the smallest and the biggest value (milliseconds) |
-| `Setup` | `Remember setup` | `false` | Checks the options of `Saved setup` again on the next launch; the **Remember this setup** button of the panel turns it on and writes the setup (turned off by hand only) |
-| `Setup` | `Saved setup` | _empty_ | The options kept for the next launch, as a comma separated list of names (`terrain`, `water`, `clouds`, `mist`, `player`, `hud` and the category keys). Filled in by the **Remember this setup** button; edited by hand only to force a setup |
+| `Setup` | `Saved setup` | _empty_ | The options written with the **Save setup** button, as a comma separated list of names (`terrain`, `water`, `clouds`, `mist`, `player`, `hud` and the category keys), brought back with **Restore setup** (never applied at startup). Edited by hand only to force a setup |
 
 ### The name rules file
 
