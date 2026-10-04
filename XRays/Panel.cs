@@ -36,9 +36,9 @@ namespace XRays
         private const float RefreshInterval = 0.4f;
         private const float CountInterval = 1.5f;
 
-        /// <summary>What the "Remember this setup" row describes itself with.</summary>
+        /// <summary>What the "Remember this setup" button describes itself with.</summary>
         private const string RememberTip =
-            "Keeps the ticked options for the next launch: they are checked again when the game starts. Turning it off starts the next launch with nothing checked.";
+            "Writes the options ticked right now: they are ticked again the next time the game starts, and a message confirms the save. Pressing it again overwrites what was kept.";
 
         /// <summary>What the "Show tooltips" row describes itself with.</summary>
         private const string TooltipsTip =
@@ -106,9 +106,6 @@ namespace XRays
         private Toggle mistToggle;
         private Toggle playerToggle;
         private Toggle hudToggle;
-
-        /// <summary>The "Remember this setup" row (persisted options).</summary>
-        private Toggle rememberToggle;
 
         /// <summary>The "Show tooltips" row (persisted options).</summary>
         private Toggle tooltipsToggle;
@@ -209,7 +206,6 @@ namespace XRays
             mistToggle = null;
             playerToggle = null;
             hudToggle = null;
-            rememberToggle = null;
             tooltipsToggle = null;
             revealButton = null;
             cursorText = null;
@@ -275,7 +271,6 @@ namespace XRays
 
             // the config entry may have been changed from outside (config
             // manager), the row follows it
-            rememberToggle.SetIsOnWithoutNotify(plugin.RememberSetup.Value);
             tooltipsToggle.SetIsOnWithoutNotify(plugin.ShowTooltips.Value);
 
             foreach (CategoryRow row in categoryRows)
@@ -525,27 +520,18 @@ namespace XRays
                 "The object roots currently invisible (ticked categories, objects picked one by one, Hide all), and what is hidden without a row of its own in this list."
             );
 
-            // the setup kept for the next launch: shaped like a category row
-            // so the whole list stays one single list of options
-            rememberToggle = MakeToggle(
-                LeftMargin,
-                rows[remember],
-                plugin.RememberSetup.Value,
-                OnRememberToggle
-            );
-            Text rememberLabel = MakeText(
+            // the setup kept for the next launch: a button instead of a
+            // toggle, so the row is an action and the list stays one
+            // single list of options
+            Button rememberButton = MakeButton(
                 "Remember this setup for the next launch",
-                LeftMargin + 36f,
+                RightMargin,
                 rows[remember],
-                380f,
-                26f,
-                15,
-                BodyColor,
-                TextAnchor.MiddleLeft,
-                gui.AveriaSerif
+                LayerLineWidth,
+                24f
             );
-            tip.Attach(rememberToggle.gameObject, RememberTip);
-            tip.Attach(rememberLabel.gameObject, RememberTip);
+            rememberButton.onClick.AddListener(OnRememberSetup);
+            tip.Attach(rememberButton.gameObject, RememberTip);
 
             // the "Show tooltips" option, the same shape as the row above
             tooltipsToggle = MakeToggle(
@@ -1017,12 +1003,12 @@ namespace XRays
         }
 
         /// <summary>
-        /// Keeps (or drops) the checked options for the next launch: the row
-        /// only writes the config entry, the plugin does the storing.
+        /// Keeps the checked options for the next launch: the button only
+        /// calls the plugin, which stores them and confirms it.
         /// </summary>
-        private void OnRememberToggle(bool remember)
+        private void OnRememberSetup()
         {
-            plugin.SetRememberSetup(remember);
+            plugin.RememberCurrentSetup();
         }
 
         private void OnTooltipsToggle(bool show)

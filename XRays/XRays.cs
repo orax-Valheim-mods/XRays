@@ -73,9 +73,6 @@ namespace XRays
         /// <summary>How often the "Under the cursor" info is sampled for logging.</summary>
         private const float CursorLogInterval = 0.4f;
 
-        /// <summary>How often the remembered setup is written back (while it is on).</summary>
-        private const float SetupSyncInterval = 0.5f;
-
         /// <summary>The config section the panel key, Close control panel and the pick category are listed under.</summary>
         private const string GeneralHotkeysSection = "General hotkeys";
 
@@ -108,7 +105,6 @@ namespace XRays
 
         private float menuSuppressTimer;
         private float cursorLogTimer;
-        private float setupSyncTimer;
         private string lastCursorLog;
 
         /// <summary>Whether the mod runs: read from the option each frame, a change goes through SetModEnabled.</summary>
@@ -289,13 +285,13 @@ namespace XRays
                 "Setup",
                 "Remember setup",
                 false,
-                "Keep the options checked in the panel and check them again the next time the game starts. The \"Remember this setup\" toggle of the panel does the same thing."
+                "Whether the options stored under \"Saved setup\" are checked again when the game starts. The \"Remember this setup\" button of the panel turns this on and writes the setup of the moment; this entry is only turned off by hand, to stop restoring it."
             );
             SavedSetup = Config.Bind(
                 "Setup",
                 "Saved setup",
                 "",
-                "The options kept for the next launch, written as their names (terrain, water, clouds, mist, player, hud and the category keys, comma separated). Filled in by the panel: edited by hand only to force a setup."
+                "The options kept for the next launch, written as their names (terrain, water, clouds, mist, player, hud and the category keys, comma separated). Filled in by the \"Remember this setup\" button of the panel: edited by hand only to force a setup."
             );
             NameRulesFileName = Config.Bind(
                 "Files",
@@ -448,7 +444,6 @@ namespace XRays
             {
                 Visibility.UpdateInterval = UpdateInterval.Value;
                 Visibility.Tick(deltaTime);
-                SyncRememberedSetup(deltaTime);
             }
 
             NameRulesFile.Tick(deltaTime);
@@ -724,27 +719,24 @@ namespace XRays
         // ------------------------------------------------------------------
 
         /// <summary>
-        /// Called by the panel toggle (and by the config entry it mirrors):
-        /// while it is on, the options checked in the panel are written back
-        /// to the config so the next launch starts from them. Turning it on
-        /// stores the setup of the moment right away, so leaving the game
-        /// just after that keeps it too.
+        /// Called by the panel button: turns the restore on and writes the
+        /// options checked right now to the config, so the next launch
+        /// starts from them. Nothing is sampled while the game runs: the
+        /// setup only changes on a press, and a message confirms it.
         /// </summary>
-        internal void SetRememberSetup(bool remember)
+        internal void RememberCurrentSetup()
         {
-            RememberSetup.Value = remember;
-
-            if (remember)
-            {
-                StoreRememberedSetup();
-            }
+            RememberSetup.Value = true;
+            StoreRememberedSetup();
+            Notify("Setup remembered for the next launch");
         }
 
         /// <summary>
-        /// Puts the stored options back at startup, when the toggle was left
-        /// on. The state is rebuilt name by name, so the options and the
-        /// categories that did not exist when it was stored simply start
-        /// unchecked, and the ones that were removed are dropped.
+        /// Puts the stored options back at startup, when a setup has been
+        /// remembered (the "Remember setup" flag, written by the panel
+        /// button). The state is rebuilt name by name, so the options and
+        /// the categories that did not exist when it was stored simply
+        /// start unchecked, and the ones that were removed are dropped.
         /// </summary>
         private void RestoreRememberedSetup()
         {
@@ -755,31 +747,6 @@ namespace XRays
 
             Visibility.ApplyOptions(DeserializeSetup(SavedSetup.Value));
             Logger.LogInfo("Remembered setup restored: " + SavedSetup.Value);
-        }
-
-        /// <summary>
-        /// Keeps the stored setup in step with the panel while the toggle is
-        /// on. The state is sampled rather than written on every change, and
-        /// only when the list of names really differs: BepInEx writes the
-        /// config file itself as soon as an entry gets a new value, so a
-        /// quiet option never touches the disk.
-        /// </summary>
-        private void SyncRememberedSetup(float deltaTime)
-        {
-            if (!RememberSetup.Value)
-            {
-                setupSyncTimer = 0f;
-                return;
-            }
-
-            setupSyncTimer += deltaTime;
-            if (setupSyncTimer < SetupSyncInterval)
-            {
-                return;
-            }
-
-            setupSyncTimer = 0f;
-            StoreRememberedSetup();
         }
 
         private void StoreRememberedSetup()
