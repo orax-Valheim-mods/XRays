@@ -446,7 +446,7 @@ namespace XRays
             }
 
             rows[2 + Categories.DisplayOrder.Length] = Row(30f); // hidden objects
-            rows[3 + Categories.DisplayOrder.Length] = Row(31f); // save/restore setup
+            rows[3 + Categories.DisplayOrder.Length] = Row(36f); // save/restore setup
             rows[4 + Categories.DisplayOrder.Length] = Row(26f); // show tooltips
             rows[5 + Categories.DisplayOrder.Length] = Row(34f); // global buttons
             rows[6 + Categories.DisplayOrder.Length] = Row(100f); // help text (5 lines)
