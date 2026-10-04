@@ -69,7 +69,9 @@ Two ways to use it:
   the object the ray really touched (`Hit: _Zone(Clone)/Water/WaterSurface`,
   which tells apart the terrain, the water and the object itself); then its
   world coordinates (`Pos (x, y, z)`: the object position for an object, the
-  aimed point for the terrain / water) and the distance in meters.
+  aimed point for the terrain / water) and the distance in meters. While the
+  pointer rests on the panel itself, no new ray cast runs: the four lines
+  keep what they last saw in the world.
 * Colliders are never touched: the world stays playable, only renderers are
   disabled (their original state is memorised and restored).
 * **Clouds** takes away everything the environment calls a cloud, wherever it

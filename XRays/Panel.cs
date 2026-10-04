@@ -124,6 +124,9 @@ namespace XRays
         private float refreshTimer;
         private float countTimer;
 
+        /// <summary>Which counter of the list the next tick refreshes.</summary>
+        private int countCursor;
+
         internal static readonly Color BodyColor = new Color(0.93f, 0.88f, 0.79f, 1f);
 
         /// <summary>Where the next element is created (header or content).</summary>
@@ -214,6 +217,7 @@ namespace XRays
             revealButton = null;
             cursorText = null;
             objectsText = null;
+            countCursor = 0;
             categoryRows.Clear();
         }
 
@@ -231,11 +235,13 @@ namespace XRays
                 Refresh();
             }
 
+            // one counter per tick: listing the loaded objects of every
+            // category at once costs a burst of frame time
             countTimer += deltaTime;
             if (countTimer >= CountInterval)
             {
                 countTimer = 0f;
-                RefreshCounts();
+                TickCounts();
             }
 
             if (plugin.ShowTooltips.Value)
@@ -298,12 +304,30 @@ namespace XRays
                 + "    Other: "
                 + visibility.OffListCount;
 
-            cursorText.text = PickService.Describe(plugin.PickDistance.Value, visibility);
+            // the ray cast behind the panel is pointless while the pointer
+            // works the panel itself: the line keeps what it last saw of
+            // the world
+            if (!PointerOverPanel())
+            {
+                cursorText.text = PickService.Describe(plugin.PickDistance.Value, visibility);
+            }
+        }
+
+        /// <summary>Whether the pointer rests on the panel itself.</summary>
+        private bool PointerOverPanel()
+        {
+            return root != null
+                && RectTransformUtility.RectangleContainsScreenPoint(
+                    root.GetComponent<RectTransform>(),
+                    Input.mousePosition
+                );
         }
 
         /// <summary>
         /// Per-category counters: listing the loaded objects is expensive,
-        /// so it is only done periodically (and after an action).
+        /// so the whole list is only computed when the panel opens, and
+        /// while it stays open the counters are refreshed one row per tick,
+        /// going around the list in a circle.
         /// </summary>
         public void RefreshCounts()
         {
@@ -316,6 +340,19 @@ namespace XRays
             {
                 row.Count.text = Categories.Count(row.Category).ToString();
             }
+        }
+
+        /// <summary>Refreshes one counter: the next row of the list each tick.</summary>
+        public void TickCounts()
+        {
+            if (!IsOpen || categoryRows.Count == 0)
+            {
+                return;
+            }
+
+            countCursor %= categoryRows.Count;
+            CategoryRow row = categoryRows[countCursor++];
+            row.Count.text = Categories.Count(row.Category).ToString();
         }
 
         // ---------------------------------------------------------------- construction
