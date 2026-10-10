@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
+using HarmonyLib;
 using Jotunn.Managers;
 using UnityEngine;
 
@@ -106,6 +107,9 @@ namespace XRays
 
         /// <summary>The panel options when the mod was switched off, to bring them back on.</summary>
         private bool[] disabledSetup;
+
+        /// <summary>The Harmony patches of this copy of the plugin (the pause menu line).</summary>
+        private Harmony harmony;
 
         private void Awake()
         {
@@ -307,6 +311,12 @@ namespace XRays
 
             modEnabled = Enable.Value;
 
+            // the pause menu line: the postfixes rebuild it on every opening of the
+            // menu, and the master switch is followed the moment it changes
+            harmony = new Harmony(PluginGUID);
+            harmony.PatchAll();
+            Enable.SettingChanged += (sender, args) => PauseMenuEntry.OnSettingChanged();
+
             GUIManager.OnCustomGUIAvailable += OnCustomGuiAvailable;
 
             Logger.LogInfo(PluginName + " " + PluginVersion + " loaded.");
@@ -393,6 +403,17 @@ namespace XRays
         private void OnDestroy()
         {
             GUIManager.OnCustomGUIAvailable -= OnCustomGuiAvailable;
+
+            // the menu line and the patches belong to this copy of the plugin: both
+            // have to go before ScriptEngine loads the next one, which would draw a
+            // second line and patch Menu over the patches already applied
+            PauseMenuEntry.Cleanup();
+
+            if (harmony != null)
+            {
+                harmony.UnpatchSelf();
+                harmony = null;
+            }
 
             if (Panel != null && Panel.IsOpen)
             {

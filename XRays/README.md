@@ -53,6 +53,11 @@ Two ways to use it:
   them, each one gets the combination recorded for it in the config window
   (`F1`), by clicking the hotkey and pressing it. The help line of the panel
   only lists the hotkeys that have a key.
+* The pause menu also carries an **XRays** line, right under **Settings**:
+  clicking it closes the menu and opens the panel, exactly as the `F8`
+  hotkey does (with a gamepad, `Down` from Settings reaches it). The line
+  follows the `General` → `Enable` option: switched off, the pause menu
+  does not show it.
 
 * Picking is a ray cast from the camera (screen center when the pointer is
   locked, otherwise the real mouse position), up to a maximum distance of
