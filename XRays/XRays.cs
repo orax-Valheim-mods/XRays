@@ -471,6 +471,7 @@ namespace XRays
             {
                 if (PauseMenuVisible())
                 {
+                    Logger.LogInfo("XRays: pause menu over the open panel - closing both.");
                     Panel.Close();
                     Menu.instance.Hide();
                     menuSuppressTimer = MenuSuppressDuration;
