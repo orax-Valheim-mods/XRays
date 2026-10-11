@@ -1,4 +1,3 @@
-using System;
 using HarmonyLib;
 
 namespace XRays
@@ -14,17 +13,5 @@ namespace XRays
     internal static class Patch_MenuShow
     {
         private static void Postfix(Menu __instance) => PauseMenuEntry.Add(__instance);
-
-        /// <summary>
-        /// The opening is stamped with the caller's stack: every open of the menu
-        /// shows who asked for it, so an opening at the wrong moment names itself.
-        /// </summary>
-        private static void Prefix()
-        {
-            System.Diagnostics.StackTrace trace = new System.Diagnostics.StackTrace(1, false);
-            XRays.Instance?.Log.LogInfo(
-                "Menu.Show at " + DateTime.Now.ToString("HH:mm:ss.fff") + ", called from:\n" + trace
-            );
-        }
     }
 }

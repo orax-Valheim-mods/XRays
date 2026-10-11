@@ -98,7 +98,16 @@ namespace XRays
         /// </summary>
         private const float MenuSuppressDuration = 0.25f;
 
+        /// <summary>
+        /// How long a menu the pause menu entry's click has just closed is still read as
+        /// "not yet closed" instead of an Escape over the freshly opened panel: the game
+        /// acts on the close a few frames after the call, while Menu.IsVisible already
+        /// answers true.
+        /// </summary>
+        private const float MenuCloseGraceDuration = 1.5f;
+
         private float menuSuppressTimer;
+        private float menuCloseGraceTimer;
         private float cursorLogTimer;
         private string lastCursorLog;
 
@@ -471,14 +480,16 @@ namespace XRays
             {
                 if (PauseMenuVisible())
                 {
-                    Logger.LogInfo(
-                        "XRays: pause menu over the open panel - closing both, IsVisible "
-                            + Menu.IsVisible()
-                            + "."
-                    );
-                    Panel.Close();
-                    Menu.instance.Hide();
-                    menuSuppressTimer = MenuSuppressDuration;
+                    // the grace the entry's click has begun: while it lasts, a menu
+                    // still on screen is that close catching up, not an Escape over
+                    // this panel - so the panel stays where it is
+                    if (menuCloseGraceTimer <= 0f)
+                    {
+                        Logger.LogInfo("XRays: pause menu over the open panel - closing both.");
+                        Panel.Close();
+                        Menu.instance.Hide();
+                        menuSuppressTimer = MenuSuppressDuration;
+                    }
                 }
                 else if (Hotkey(KeyClose, consoleBlocked))
                 {
@@ -495,6 +506,11 @@ namespace XRays
                 {
                     Menu.instance.Hide();
                 }
+            }
+
+            if (menuCloseGraceTimer > 0f)
+            {
+                menuCloseGraceTimer -= deltaTime;
             }
 
             if (Panel != null)
@@ -905,6 +921,23 @@ namespace XRays
 
             Player player = Player.m_localPlayer;
             return player != null && player.IsDead();
+        }
+
+        /// <summary>
+        /// The pause menu entry has just clicked itself closed: for the next moments a
+        /// menu still reading as visible is that close not having caught up yet, never
+        /// an Escape over the panel the click has opened. Every menu OPENING in between
+        /// is a real Escape and ends the grace at once (EndMenuCloseGrace).
+        /// </summary>
+        internal void BeginMenuCloseGrace()
+        {
+            menuCloseGraceTimer = MenuCloseGraceDuration;
+        }
+
+        /// <summary>A menu opening again is the game's own Escape: the ordinary rule applies.</summary>
+        internal void EndMenuCloseGrace()
+        {
+            menuCloseGraceTimer = 0f;
         }
 
         /// <summary>

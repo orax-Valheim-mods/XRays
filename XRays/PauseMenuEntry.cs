@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace XRays
@@ -67,14 +65,17 @@ namespace XRays
                     return;
                 }
 
+                // a menu opening again is the game's own Escape, never the entry's
+                // click: the panel goes back under the ordinary rule of the closes
+                plugin.EndMenuCloseGrace();
+
                 if (!plugin.Enable.Value)
                 {
                     Forget("Enable is off");
                     return;
                 }
 
-                bool known = entryButton != null;
-                if (!known)
+                if (entryButton == null)
                 {
                     entryButton = Build(menu);
                 }
@@ -82,18 +83,6 @@ namespace XRays
                 if (entryButton != null)
                 {
                     WireNavigation();
-
-                    if (known)
-                    {
-                        // an entry left from a previous opening: what the menu did to it since
-                        plugin.Log.LogInfo(
-                            "Pause menu entry: reused - active "
-                                + entryButton.gameObject.activeInHierarchy
-                                + ", interactable "
-                                + entryButton.interactable
-                                + "."
-                        );
-                    }
                 }
             }
             catch (Exception e)
@@ -161,47 +150,25 @@ namespace XRays
         private static void OnClicked()
         {
             XRays plugin = XRays.Instance;
-            plugin?.Log.LogInfo("Pause menu entry: clicked.");
-
             if (plugin == null || !plugin.Enable.Value || plugin.Panel == null)
             {
-                plugin?.Log.LogWarning(
-                    "Pause menu entry: click ignored - instance "
-                        + (XRays.Instance != null)
-                        + ", Enable "
-                        + (plugin != null && plugin.Enable.Value)
-                        + ", panel "
-                        + (plugin != null && plugin.Panel != null)
-                        + "."
-                );
+                // the option went off between the opening of the menu and the click
                 return;
             }
 
+            // the game closes the menu a few frames after the call below: for a short
+            // while its still-visible state is that close catching up, not an Escape
+            // over the panel about to open
+            plugin.BeginMenuCloseGrace();
+
             if (pauseMenu != null)
             {
-                plugin.Log.LogInfo(
-                    "Pause menu entry: before hide - IsVisible "
-                        + Menu.IsVisible()
-                        + ", same instance "
-                        + ReferenceEquals(pauseMenu, Menu.instance)
-                        + "."
-                );
-
                 // through the game's own hand: unpause and the cursor back, so the
                 // panel starts on a running game like it does on the hotkey press
                 pauseMenu.Hide();
-
-                plugin.Log.LogInfo(
-                    "Pause menu entry: pause menu hidden - IsVisible " + Menu.IsVisible() + "."
-                );
-            }
-            else
-            {
-                plugin.Log.LogWarning("Pause menu entry: no menu to hide.");
             }
 
             plugin.Panel.Open();
-            plugin.Log.LogInfo("Pause menu entry: panel open = " + plugin.Panel.IsOpen + ".");
         }
 
         /// <summary>One clone of the game's own Settings button, or null (and one log line).</summary>
@@ -233,15 +200,6 @@ namespace XRays
             // right after Settings, which is the place the chain above is wired for as
             // well: the list is laid out by sibling index
             entry.transform.SetSiblingIndex(settings.transform.GetSiblingIndex() + 1);
-
-            try
-            {
-                entry.AddComponent<Probe>();
-            }
-            catch (Exception e)
-            {
-                XRays.Instance?.Log.LogWarning("Pause menu entry: probe refused: " + e.Message);
-            }
 
             XRays.Instance?.Log.LogInfo("Pause menu: entry added (" + EntryLabel + ").");
             return created;
@@ -340,69 +298,6 @@ namespace XRays
             }
 
             return null;
-        }
-
-        /// <summary>
-        /// One frame of diagnosis: by the time Start runs, the menu layout has had its
-        /// pass, so the raycast below asks the entry's REAL place who would take the
-        /// click standing there.
-        /// </summary>
-        private sealed class Probe : MonoBehaviour
-        {
-            private void Start()
-            {
-                Diagnose();
-            }
-        }
-
-        /// <summary>Where a click at the center of the entry would land, and what state it is in.</summary>
-        private static void Diagnose()
-        {
-            try
-            {
-                Button current = entryButton;
-                EventSystem system = EventSystem.current;
-                RectTransform rect = current != null ? current.transform as RectTransform : null;
-                if (current == null || system == null || rect == null)
-                {
-                    XRays.Instance?.Log.LogWarning(
-                        "Pause menu entry: diagnosis - button "
-                            + (current != null)
-                            + ", event system "
-                            + (system != null)
-                            + "."
-                    );
-                    return;
-                }
-
-                Vector2 position = RectTransformUtility.WorldToScreenPoint(null, rect.position);
-                List<RaycastResult> hits = new List<RaycastResult>();
-                system.RaycastAll(new PointerEventData(system) { position = position }, hits);
-
-                string top = "nothing";
-                for (int i = 0; i < hits.Count && i < 3; i++)
-                {
-                    top += (i == 0 ? " -> " : " | ") + hits[i].gameObject.name;
-                }
-
-                XRays.Instance?.Log.LogInfo(
-                    "Pause menu entry: raycast at own center "
-                        + top
-                        + " (hits "
-                        + hits.Count
-                        + "); state: active "
-                        + current.gameObject.activeInHierarchy
-                        + ", interactable "
-                        + current.interactable
-                        + ", graphic "
-                        + (current.targetGraphic != null && current.targetGraphic.raycastTarget)
-                        + "."
-                );
-            }
-            catch (Exception e)
-            {
-                XRays.Instance?.Log.LogWarning("Pause menu entry: diagnosis failed: " + e.Message);
-            }
         }
     }
 }
