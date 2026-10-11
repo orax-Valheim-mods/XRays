@@ -179,10 +179,21 @@ namespace XRays
 
             if (pauseMenu != null)
             {
+                plugin.Log.LogInfo(
+                    "Pause menu entry: before hide - IsVisible "
+                        + Menu.IsVisible()
+                        + ", same instance "
+                        + ReferenceEquals(pauseMenu, Menu.instance)
+                        + "."
+                );
+
                 // through the game's own hand: unpause and the cursor back, so the
                 // panel starts on a running game like it does on the hotkey press
                 pauseMenu.Hide();
-                plugin.Log.LogInfo("Pause menu entry: pause menu hidden.");
+
+                plugin.Log.LogInfo(
+                    "Pause menu entry: pause menu hidden - IsVisible " + Menu.IsVisible() + "."
+                );
             }
             else
             {
