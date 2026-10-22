@@ -10,6 +10,7 @@ using UnityEngine;
 namespace XRays
 {
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
+    [BepInDependency(Jotunn.Main.ModGuid)]
     public class XRays : BaseUnityPlugin
     {
         public const string PluginGUID = "orax.XRays";
