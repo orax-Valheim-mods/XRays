@@ -1,96 +1,100 @@
-# XRays
+Hides the terrain, the water, the clouds, the mist or world elements so you can see through them:
+trees, rocks, resources, build pieces, creatures, ground items, etc.
 
-A Valheim "X-Ray vision" mod: hides the terrain, the water, your own
-character, the HUD, categories of world objects or a single object under the
-cursor so you can see what is behind them.
+# Demo
 
-* Built-in control panel (vanilla woodpanel via [Jötunn](https://valheim-modding.github.io/Jotunn/)).
-* Keyboard hotkeys (changeable in the config): `F8` panel · `Escape` close · `F9` + `LeftControl` whole category under the cursor; the show/hide keys (`Terrain`, `Water`, `Clouds`, `Mist`, `Player`, `HUD`, `Pick`, `Reveal`) are not set by default.
-* Client-side only, no server change: only `Renderer`s are disabled (their
-  original state is memorised and restored), colliders are never touched.
+# Images
 
-See `XRays\Package\README.md` for the Thunderstore description.
+![](https://i.imgur.com/NN8l7RU.jpeg)
 
-## Project layout
+![](https://i.imgur.com/PEPsAvw.jpeg)
 
-```
-XRays.sln                  solution (build this, not the .csproj alone)
-Environment.props          BepInEx / deploy paths (Gale profile "dev")
-scripts\publish.ps1        copies the built DLL + YamlDotNet into BepInEx\scripts, the name rules file into BepInEx\plugins
-XRays\XRays.cs             main plugin: config, hotkeys, actions
-XRays\Categories.cs        category registry (trees, rocks, ...)
-XRays\VisibilityManager.cs hiding state + application on renderers
-XRays\PickService.cs       picking by ray cast under the cursor
-XRays\Panel.cs             Jötunn panel
-XRays\Tooltip.cs           little box describing the row under the mouse
-XRays\NameRulesFile.cs     name rules of the categories, read from a YAML file
-XRays\orax.XRays.names.yaml the name rules themselves: shipped with the mod, copied into BepInEx\config on launch
-XRays\Package\             Thunderstore manifest.json / README.md / icon.png
-```
+![](https://i.imgur.com/LcCmlct.jpeg)
 
-## Building
+![](https://i.imgur.com/q2rP0xt.jpeg)
 
-```powershell
-dotnet build XRays.sln
-```
+## Video
 
-* Always build the **solution**: building the `.csproj` alone breaks the
-  post-build step (`$(SolutionDir)` is `*Undefined*`).
-* In `Debug`, the post-build step publishes `XRays.dll` (+ `.pdb`, `.mdb`)
-  to `BepInEx\scripts` of the game profile, where the BepInEx **Script Engine**
-  loads it on launch.
-* The name rules file is read with **YamlDotNet** (NuGet), and
-  `publish.ps1` ships `YamlDotNet.dll` beside the plugin in both targets:
-  the Script Engine resolves a script's assemblies from `BepInEx\scripts`,
-  and BepInEx resolves a plugin's from its own folder.
-* `publish.ps1` also ships `XRays\orax.XRays.names.yaml` to `BepInEx\plugins`
-  in `Debug` and into the `plugins` folder of the package in `Release`: the
-  mod copies that file into `BepInEx\config` on launch, whenever it is missing
-  there or written for another version of the mod.
-* In `Release`, an archive ready for Thunderstore is created in `Package`.
+https://youtu.be/JYvS0azG44U
+
+# Usage
+
+Open the GUI with `F8` (configurable) or click on `XRAYS` on the new Pause menu entry.
+
+Notes: The categories (Build pieces, Creatures, Crops, Grass, etc.) aim to classify in-game
+elements. However, some items may end up in the wrong category or might not be assigned to any
+category at all.
+
+## Installation
+
+**Client-side only** — nothing to install on the server.
+
+### With a mod manager (recommended)
+
+Install the mod with Vortex or Gale.
+
+### Manually
+
+1. Install BepInExPack for Valheim and Jötunn.
+2. Copy `XRays.dll` and `orax.XRays.names.yaml` into
+   `Steam\steamapps\common\Valheim\BepInEx\plugins\`.
 
 ## Configuration
 
-Hotkeys, picking distance, panel height, tooltips and the rest of the options:
-`BepInEx\config\orax.XRays.cfg`
-(created on the first launch, also editable in game through Jötunn's
-ConfigManager).
+All options live in `BepInEx\config\orax.XRays.cfg` (created on the first launch, also editable in
+game through the Configuration Manager — a separate mod, its window opens with `F1`).
 
-The name rules of the categories have a file of their own:
-`BepInEx\config\orax.XRays.names.yaml`, copied from `BepInEx\plugins` at
-launch and named by the `Files` → `Name rules file` option.
+### The name rules file
 
----
+What a category claims by name — the substrings, the prefixes and the regular expressions matched
+against the name of a game object, and the names it gives away to another category — lives in a file
+of its own **and in that file only**: the code holds no name rule at all. The mod ships it as
+`BepInEx\plugins\orax.XRays.names.yaml`, looked for there, then beside its own assembly, then in
+`BepInEx\scripts`, and copies it into `BepInEx\config` at launch; the copy of `BepInEx\config` is
+the file read, and read again every time it changes while the game runs. Which file it is, is the
+`Files` → `Name rules file` option of the table above.
 
-# Development guide (Jötunn template)
+A file holding a couple of categories could look like this:
 
-Please see the [Jötunn Docs](https://valheim-modding.github.io/Jotunn/guides/overview.html) for detailed documentation and setup.
+```yaml
+version: 0.1.0
+ores:
+  nameContains:
+    - "_copper"
+    - "silver"
+  nameMatches:
+    - "^giant_(ribs|skull|sword)"
+rocks:
+  nameExcludes:
+    - "_copper"
+    - "silver"
+```
 
-### Post build automations
+The five lists of a category, every one of them matched against the object name:
 
-`scripts\publish.ps1` is referenced from the project file as a post-build event.
+| List                  | What it does                                                                                                     |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `nameContains`        | case-insensitive substrings the category claims                                                                  |
+| `nameStartsWith`      | case-insensitive prefixes it claims                                                                              |
+| `nameMatches`         | regular expressions it claims, **searched** in the name (`^` and `$` anchor a pattern covering the whole name)   |
+| `nameExcludes`        | case-insensitive substrings given away to another category, which is how the ore veins are kept out of the rocks |
+| `nameExcludesMatches` | regular expressions given away the same way                                                                      |
 
-* **Debug** : the compiled dll and the `.mdb` debug file are copied to
-  `<ValheimDir>\BepInEx\scripts` (path set in `Environment.props` → `MOD_DEPLOYPATH`),
-  the name rules file to the `BepInEx\plugins` folder beside it.
-* **Release** : a compressed file with the binaries is created in `XRays\Package`,
-  ready for upload to Thunderstore.
+The file is the **only source**: a list it does not carry is empty, and a category it does not carry
+has no name rule at all. Categories are named by their key — `trees`, `ores`, `rocks`, `pickable`,
+`build`, `creatures`, `items`, `plants`, `spawners`, `clutter`, `locations` — and a key naming none
+of them is written to the log, it is usually a typo.
 
-### Prebuild actions
+A list belongs to one category only: telling `ores` what it claims does not keep `rocks` from
+claiming the very same names, so both sides have to be written — which is what `nameExcludes` is
+for.
 
-`DoPrebuild.props` makes Jötunn generate publicized assemblies automatically
-(required to access internal game APIs).
+Write the values between **single quotes**: nothing is escaped in them, so a regular expression
+keeps its backslash, `'^Rock_\d+$'` written once. Between double quotes a backslash has to be
+written twice (`"^Rock_\\d+$"`), and `"\d"` is a parse error; a value written without quotes at all
+is read literally too, but a ` #` inside it starts a comment and cuts it short. The name matched is
+the raw name of the game object, `Rock_3(Clone)` included when the game clones one.
 
-### Debugging
+# Misc.
 
-See the wiki page [Debugging Plugins via IDE](https://github.com/Valheim-Modding/Wiki/wiki/Debugging-Plugins-via-IDE).
-
-### After a game update
-
-When Valheim updates, the assembly references must be renewed: delete the
-publicized assemblies and rebuild so the prebuild task regenerates them.
-
----
-
-*This mod was generated by AI (a large language model) at the request of its
-author.*
+GitHub repositories of my Valheim mods: https://github.com/orax-Valheim-mods/
