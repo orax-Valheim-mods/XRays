@@ -574,7 +574,7 @@ namespace XRays
         }
 
         /// <summary>
-        /// Switches the mod on or off with the "General" → "Enable" option.
+        /// Switches the mod on or off with the "General" â†’ "Enable" option.
         /// Off: the setup of the panel is put aside, everything is shown
         /// again, the panel closes and the timing window of the passes is
         /// dropped. On: the setup put aside comes back; started switched
@@ -900,7 +900,7 @@ namespace XRays
 
         // A shortcut fires for the exact combination it holds: the modifier
         // keys must be down with the main key, and any other key held at the
-        // same time cancels the press — except the modifier keys themselves
+        // same time cancels the press â€” except the modifier keys themselves
         // (Shift, Ctrl, Alt), which are always free. An unset combination
         // never fires.
         private static bool Hotkey(ConfigEntry<KeyboardShortcut> entry, bool blocked)
@@ -963,7 +963,7 @@ namespace XRays
         }
 
         /// <summary>
-        /// Jötunn (re)creates its in-game GUI: the existing panel is no longer
+        /// JÃ¶tunn (re)creates its in-game GUI: the existing panel is no longer
         /// part of the hierarchy, so it will be rebuilt on the next open.
         /// </summary>
         private void OnCustomGuiAvailable()
